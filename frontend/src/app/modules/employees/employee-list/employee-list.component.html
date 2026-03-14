@@ -1,0 +1,79 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div>
+      <div class="page-title">{{ auth.isDeptHead ? 'My Department' : auth.isTeamLead ? 'My Team' : 'All Employees' }}</div>
+      <div class="page-subtitle">{{ filtered.length }} people</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-search">
+      <span class="search-icon">🔍</span>
+      <input class="form-control" placeholder="Search by name or email..." [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+    </div>
+    <select class="form-control" [(ngModel)]="filterRole" (ngModelChange)="applyFilters()" style="width:160px">
+      <option value="">All Roles</option>
+      <option value="PROJECT_MANAGER">Project Manager</option>
+      <option value="DEPARTMENT_HEAD">Dept Head</option>
+      <option value="TEAM_LEAD">Team Lead</option>
+      <option value="EMPLOYEE">Employee</option>
+    </select>
+    <select class="form-control" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" style="width:140px">
+      <option value="">All Status</option>
+      <option value="APPROVED">Approved</option>
+      <option value="PENDING">Pending</option>
+      <option value="REJECTED">Rejected</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && filtered.length === 0" class="empty-state card" style="padding:60px">
+    <div class="empty-icon">◉</div>
+    <div class="empty-title">No employees found</div>
+  </div>
+
+  <div *ngIf="!loading" class="card" style="padding:0">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Role</th>
+          <th>Department / Team</th>
+          <th>Utilization</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of filtered" [routerLink]="['/employees', u.id]" style="cursor:pointer">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="avatar">{{ u.firstName[0] }}{{ u.lastName[0] }}</div>
+              <div>
+                <div style="font-weight:600">{{ u.firstName }} {{ u.lastName }}</div>
+                <div style="font-size:12px;color:var(--text-muted)">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge" [ngClass]="getRoleBadge(u.role)">{{ formatRole(u.role) }}</span></td>
+          <td>
+            <div>{{ u.department?.name || '—' }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">{{ u.team?.name }}</div>
+          </td>
+          <td style="min-width:160px">
+            <div *ngIf="u.role === 'EMPLOYEE'" class="util-bar-wrap">
+              <div class="util-bar">
+                <div class="util-bar-fill" [ngClass]="getUtilClass(u)" [style.width]="getUtilPct(u) + '%'"></div>
+              </div>
+              <span class="util-pct" [ngClass]="getUtilClass(u)">{{ getUtilPct(u) | number:'1.0-0' }}%</span>
+            </div>
+            <span *ngIf="u.role !== 'EMPLOYEE'" style="color:var(--text-muted);font-size:13px">—</span>
+          </td>
+          <td><span class="badge" [ngClass]="getStatusBadge(u.approvalStatus)">{{ u.approvalStatus }}</span></td>
+          <td><span style="color:var(--text-muted);font-size:18px">›</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

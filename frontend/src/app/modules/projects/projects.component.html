@@ -1,0 +1,111 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Projects</div>
+      <div class="page-subtitle">Manage and track all projects</div>
+    </div>
+    <button *ngIf="auth.canManageProjects()" class="btn btn-primary" (click)="openCreate()">+ New Project</button>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-search" style="flex:1">
+      <span class="search-icon">🔍</span>
+      <input class="form-control" placeholder="Search projects..." [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+    </div>
+    <select class="form-control" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" style="width:150px">
+      <option value="">All Statuses</option>
+      <option value="PLANNING">Planning</option>
+      <option value="ACTIVE">Active</option>
+      <option value="ON_HOLD">On Hold</option>
+      <option value="COMPLETED">Completed</option>
+      <option value="CANCELLED">Cancelled</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+  <div *ngIf="!loading && filtered.length === 0" class="card empty-state" style="padding:60px"><div class="empty-icon">◈</div><div class="empty-title">No projects found</div></div>
+
+  <div *ngIf="!loading && filtered.length > 0" class="card" style="padding:0">
+    <table class="data-table">
+      <thead><tr><th>Project</th><th>Status</th><th>Priority</th><th>Deadline</th><th>Created By</th><th *ngIf="auth.canManageProjects()">Actions</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let p of filtered">
+          <td>
+            <div style="font-weight:600">{{ p.name }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">{{ p.description | slice:0:60 }}{{ (p.description?.length||0)>60?'...':'' }}</div>
+          </td>
+          <td><span class="badge" [ngClass]="getBadge(p.status)">{{ p.status }}</span></td>
+          <td><span class="badge" [ngClass]="getPrBadge(p.priority)">{{ p.priority }}</span></td>
+          <td style="font-size:13px;color:var(--text-muted)">{{ p.deadline ? (p.deadline | date:'MMM d, y') : '—' }}</td>
+          <td style="font-size:13px;color:var(--text-muted)">{{ p.createdBy?.firstName }} {{ p.createdBy?.lastName }}</td>
+          <td *ngIf="auth.canManageProjects()">
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-icon btn-sm" (click)="openEdit(p)" title="Edit">✏</button>
+              <button class="btn btn-icon btn-sm" style="color:var(--danger)" (click)="confirmDelete(p)" title="Delete">✕</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Project Form Modal -->
+<div class="modal-overlay" *ngIf="showForm" (click)="showForm=false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">{{ formMode === 'create' ? 'New Project' : 'Edit Project' }}</div>
+      <button class="modal-close" (click)="showForm=false">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Name *</label>
+        <input class="form-control" [(ngModel)]="editForm.name" placeholder="Project name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" [(ngModel)]="editForm.description" placeholder="What is this project about?"></textarea>
+      </div>
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" [(ngModel)]="editForm.status">
+            <option value="PLANNING">Planning</option>
+            <option value="ACTIVE">Active</option>
+            <option value="ON_HOLD">On Hold</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-control" [(ngModel)]="editForm.priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input type="date" class="form-control" [(ngModel)]="editForm.startDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deadline</label>
+          <input type="date" class="form-control" [(ngModel)]="editForm.deadline">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="showForm=false">Cancel</button>
+      <button class="btn btn-primary" (click)="save()">{{ formMode === 'create' ? 'Create Project' : 'Save Changes' }}</button>
+    </div>
+  </div>
+</div>
+
+<app-confirm [show]="showDelConfirm" title="Delete Project"
+  [message]="'Delete ' + (selected?.name || '') + '? All tasks and assignments will be removed.'"
+  (confirm)="doDelete()" (cancel)="showDelConfirm=false">
+</app-confirm>

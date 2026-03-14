@@ -1,0 +1,84 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div>
+      <div class="page-title">My Tasks</div>
+      <div class="page-subtitle">Track and update your progress</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:13px;color:var(--text-muted)">{{ active.length }} active · {{ completed.length }} done</span>
+      <select class="form-control" [(ngModel)]="filterStatus" style="width:150px">
+        <option value="">All Tasks</option>
+        <option value="ASSIGNED">Assigned</option>
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="COMPLETED">Completed</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && filtered.length === 0" class="empty-state card" style="padding:60px">
+    <div class="empty-icon">✓</div>
+    <div class="empty-title">No tasks here</div>
+    <div class="empty-desc">You have no assignments matching this filter</div>
+  </div>
+
+  <div *ngIf="!loading" style="display:flex;flex-direction:column;gap:16px">
+    <div *ngFor="let a of filtered" class="card" [class.task-completed]="a.status === 'COMPLETED'">
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-start;gap:16px">
+        <div style="flex:1">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+            <span class="badge" [ngClass]="getStatusBadge(a.status)">{{ a.status }}</span>
+            <span class="badge" [ngClass]="getPriorityBadge(a.task?.priority || 'MEDIUM')">{{ a.task?.priority }}</span>
+            <span *ngIf="a.task?.dueDate" style="font-size:12px;color:var(--text-muted);padding:2px 0">📅 Due {{ a.task?.dueDate | date:'MMM d, y' }}</span>
+          </div>
+          <div style="font-size:16px;font-weight:700;color:var(--text-primary)">{{ a.task?.title }}</div>
+          <div style="font-size:13px;color:var(--accent);font-weight:500;margin-top:2px">📁 {{ a.task?.project?.name || '—' }}</div>
+          <div *ngIf="a.task?.description" style="font-size:13px;color:var(--text-secondary);margin-top:6px">
+            {{ a.task?.description | slice:0:120 }}{{ (a.task?.description?.length || 0) > 120 ? '...' : '' }}
+          </div>
+          <div *ngIf="a.notes" style="font-size:12px;color:var(--text-muted);margin-top:4px;font-style:italic">"{{ a.notes }}"</div>
+        </div>
+        <div style="text-align:center;min-width:68px">
+          <div style="font-size:28px;font-weight:800;" [style.color]="progressColor(progressMap[a.id] ?? 0)">
+            {{ progressMap[a.id] ?? 0 }}%
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">complete</div>
+        </div>
+      </div>
+
+      <!-- Progress Slider (active tasks only) -->
+      <div *ngIf="a.status !== 'COMPLETED' && a.status !== 'REMOVED'" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Update Progress</span>
+          <span style="font-size:12px;color:var(--text-muted)">⏱ {{ a.task?.estimatedHours }}h estimated</span>
+        </div>
+        <input type="range" min="0" max="100" step="5"
+          [(ngModel)]="progressMap[a.id]"
+          style="width:100%;accent-color:var(--accent);cursor:pointer">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px">
+          <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+        </div>
+        <!-- Visual bar -->
+        <div style="height:8px;background:var(--border);border-radius:4px;margin-top:10px;overflow:hidden">
+          <div style="height:100%;border-radius:4px;transition:width 0.3s,background 0.3s"
+            [style.width]="(progressMap[a.id] ?? 0) + '%'"
+            [style.background]="progressColor(progressMap[a.id] ?? 0)">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px">
+          <button class="btn btn-primary" (click)="saveProgress(a)" [disabled]="saving === a.id" style="min-width:150px;justify-content:center">
+            <span *ngIf="saving !== a.id">{{ (progressMap[a.id] ?? 0) >= 100 ? '✓ Mark Complete' : '💾 Save Progress' }}</span>
+            <span *ngIf="saving === a.id">Saving...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Completed state -->
+      <div *ngIf="a.status === 'COMPLETED'" style="margin-top:12px;display:flex;align-items:center;gap:8px;color:var(--success);font-weight:600;font-size:14px">
+        <span style="font-size:18px">✓</span> Completed {{ a.completionDate | date:'MMM d, y' }}
+      </div>
+    </div>
+  </div>
+</div>

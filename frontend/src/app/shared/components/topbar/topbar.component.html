@@ -1,0 +1,17 @@
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="topbar-menu-btn" (click)="toggleSidebar()" title="Toggle menu" aria-label="Toggle sidebar">
+      ☰
+    </button>
+    <div class="page-breadcrumb">{{ title }}</div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-user" [routerLink]="['/employees', auth.userId]">
+      <div class="avatar avatar-sm">{{ initials }}</div>
+      <div class="topbar-user-info">
+        <div class="topbar-name">{{ auth.auth?.firstName }} {{ auth.auth?.lastName }}</div>
+        <div class="topbar-role">{{ roleLabel }}</div>
+      </div>
+    </div>
+  </div>
+</div>

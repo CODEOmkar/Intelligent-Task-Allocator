@@ -1,0 +1,162 @@
+<div class="fade-in">
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Pending banner for unapproved employees -->
+    <div *ngIf="auth.isEmployee && !auth.isApproved" class="pending-banner">
+      <span class="banner-icon">⏳</span>
+      <div>
+        <div class="banner-title">Account Pending Approval</div>
+        <div class="banner-text">Your registration is awaiting Project Manager review. Once approved you'll receive task assignments.</div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">📁</div>
+        <div>
+          <div class="stat-label">Projects</div>
+          <div class="stat-value">{{ stats.totalProjects }}</div>
+          <div class="stat-sub">{{ stats.activeProjects }} active</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow">📋</div>
+        <div>
+          <div class="stat-label">{{ auth.isEmployee ? 'My Tasks' : 'Total Tasks' }}</div>
+          <div class="stat-value">{{ stats.totalTasks }}</div>
+          <div class="stat-sub">{{ stats.pendingTasks }} pending</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✅</div>
+        <div>
+          <div class="stat-label">Completed</div>
+          <div class="stat-value">{{ stats.completedTasks }}</div>
+          <div class="stat-sub">{{ stats.totalTasks > 0 ? ((stats.completedTasks / stats.totalTasks) * 100 | number:'1.0-0') : 0 }}% done</div>
+        </div>
+      </div>
+      <div class="stat-card" *ngIf="!auth.isEmployee">
+        <div class="stat-icon purple">👥</div>
+        <div>
+          <div class="stat-label">Employees</div>
+          <div class="stat-value">{{ stats.totalEmployees }}</div>
+          <div class="stat-sub" [style.color]="stats.overloadedEmployees > 0 ? 'var(--danger)' : 'var(--text-muted)'">
+            {{ stats.overloadedEmployees }} overloaded
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Employee active assignments -->
+    <div *ngIf="auth.isEmployee && myAssignments.length > 0" class="card">
+      <div class="card-header">
+        <div class="card-title">My Active Assignments</div>
+        <a routerLink="/my-tasks" class="btn btn-primary btn-sm">Update Progress →</a>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Task</th><th>Project</th><th>Status</th><th>Progress</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let a of myAssignments">
+            <td><strong>{{ a.task?.title }}</strong></td>
+            <td style="color:var(--text-muted)">{{ a.task?.project?.name || '—' }}</td>
+            <td><span class="badge badge-blue">{{ a.status }}</span></td>
+            <td>
+              <div class="util-bar-wrap">
+                <div class="util-bar" style="width:120px"><div class="util-bar-fill optimal" [style.width]="(a.completionPercentage || 0) + '%'"></div></div>
+                <span style="font-size:12px;color:var(--text-secondary);font-weight:600">{{ a.completionPercentage || 0 }}%</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Two-col: Projects + Tasks -->
+    <div class="two-col" style="gap:20px">
+      <!-- Recent Projects -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-header">
+          <div class="card-title">Recent Projects</div>
+          <a routerLink="/projects" class="btn btn-outline btn-sm">View All →</a>
+        </div>
+        <div *ngIf="projects.length === 0" class="empty-state" style="padding:32px">
+          <div class="empty-icon">📁</div><div class="empty-title">No projects yet</div>
+        </div>
+        <table class="data-table" *ngIf="projects.length > 0">
+          <tbody>
+            <tr *ngFor="let p of projects" style="cursor:pointer" [routerLink]="['/projects', p.id]">
+              <td>
+                <div style="font-weight:600;margin-bottom:2px">{{ p.name }}</div>
+                <div style="font-size:12px;color:var(--text-muted)">{{ p.deadline ? 'Due ' + (p.deadline | date:'MMM d, y') : 'No deadline' }}</div>
+              </td>
+              <td style="text-align:right"><span class="badge" [ngClass]="getProjectBadge(p.status)">{{ p.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tasks (sliced to 5, but "View All" goes to full list) -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-header">
+          <div class="card-title">{{ auth.isEmployee ? 'My Tasks' : 'Recent Tasks' }}</div>
+          <!-- KEY FIX: employees → /my-tasks, managers/leads → /tasks -->
+          <a [routerLink]="auth.isEmployee ? '/my-tasks' : '/tasks'" class="btn btn-outline btn-sm">View All ({{ tasks.length }}) →</a>
+        </div>
+        <div *ngIf="tasks.length === 0" class="empty-state" style="padding:32px">
+          <div class="empty-icon">📋</div><div class="empty-title">No tasks found</div>
+        </div>
+        <table class="data-table" *ngIf="tasks.length > 0">
+          <tbody>
+            <tr *ngFor="let t of tasks | slice:0:5">
+              <td>
+                <div style="font-weight:600;margin-bottom:2px">{{ t.title }}</div>
+                <div style="font-size:12px;color:var(--text-muted)">{{ t.project?.name || '—' }}</div>
+              </td>
+              <td style="text-align:right"><span class="badge" [ngClass]="getTaskBadge(t.status)">{{ t.status | titlecase }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="tasks.length > 5" style="padding:10px 16px;text-align:center;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border)">
+          + {{ tasks.length - 5 }} more —
+          <a [routerLink]="auth.isEmployee ? '/my-tasks' : '/tasks'" style="color:var(--accent);font-weight:600">View all tasks</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Utilization (managers/leads only) -->
+    <div *ngIf="!auth.isEmployee && utilization.length > 0" class="card" style="margin-top:20px">
+      <div class="card-header">
+        <div class="card-title">Team Utilization</div>
+        <div class="util-legend">
+          <div class="util-legend-item"><div class="util-legend-dot" style="background:var(--underutil)"></div>&lt;70% Under</div>
+          <div class="util-legend-item"><div class="util-legend-dot" style="background:var(--optimal)"></div>70–100% Optimal</div>
+          <div class="util-legend-item"><div class="util-legend-dot" style="background:var(--overload)"></div>&gt;100% Overloaded</div>
+        </div>
+        <a routerLink="/utilization" class="btn btn-outline btn-sm">Full Report →</a>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Team / Dept</th><th>Hours</th><th>Utilization</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let u of utilization" [routerLink]="['/employees', u.userId]" style="cursor:pointer">
+            <td><strong>{{ u.name }}</strong></td>
+            <td style="color:var(--text-muted);font-size:13px">{{ u.teamName || u.departmentName || '—' }}</td>
+            <td style="font-size:12px;font-family:monospace;color:var(--text-secondary)">{{ u.allocatedHours }}h / {{ u.maxCapacityHours }}h</td>
+            <td style="min-width:150px">
+              <div class="util-bar-wrap">
+                <div class="util-bar"><div class="util-bar-fill" [ngClass]="getUtilClass(u.utilizationStatus)" [style.width]="getUtilBarWidth(u.utilizationPercent)"></div></div>
+                <span class="util-pct" [ngClass]="getUtilClass(u.utilizationStatus)">{{ u.utilizationPercent | number:'1.0-0' }}%</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="u.utilizationStatus === 'OPTIMAL' ? 'badge-green' : u.utilizationStatus === 'OVERLOADED' ? 'badge-red' : 'badge-gray'">
+                {{ u.utilizationStatus }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</div>

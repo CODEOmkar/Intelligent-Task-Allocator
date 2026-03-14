@@ -1,0 +1,112 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Utilization Report</div>
+      <div class="page-subtitle">{{ auth.isPM ? 'All employees' : auth.isDeptHead ? 'Your department' : 'Your team' }} — real-time metrics</div>
+    </div>
+    <button class="btn btn-outline btn-sm" (click)="load()">↻ Refresh</button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="stats-grid" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-icon" style="color:var(--text-muted)">◉</div>
+      <div><div class="stat-label">Total</div><div class="stat-value">{{ metrics.length }}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon underutil">▽</div>
+      <div><div class="stat-label">Underutilized</div><div class="stat-value underutil">{{ underutilized }}</div><div class="stat-sub">&lt;70%</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon optimal">◎</div>
+      <div><div class="stat-label">Optimal</div><div class="stat-value optimal">{{ optimal }}</div><div class="stat-sub">70–100%</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon overload">⚠</div>
+      <div><div class="stat-label">Overloaded</div><div class="stat-value overload">{{ overloaded }}</div><div class="stat-sub">&gt;100%</div></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-search">
+      <span class="search-icon">🔍</span>
+      <input class="form-control" placeholder="Search employee or team..." [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+    </div>
+    <select class="form-control" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" style="width:170px">
+      <option value="">All Status</option>
+      <option value="UNDERUTILIZED">Underutilized</option>
+      <option value="OPTIMAL">Optimal</option>
+      <option value="OVERLOADED">Overloaded</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading" class="card" style="padding:0">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Department / Team</th>
+          <th>Active Tasks</th>
+          <th>Hours</th>
+          <th>Utilization</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of filtered" [routerLink]="['/employees', u.userId]" style="cursor:pointer">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="avatar">{{ u.name[0] }}</div>
+              <div>
+                <div style="font-weight:600">{{ u.name }}</div>
+                <div style="font-size:12px;color:var(--text-muted)">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div>{{ u.departmentName || '—' }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">{{ u.teamName }}</div>
+          </td>
+          <td style="font-weight:600;text-align:center">{{ u.activeTasks }}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:13px">
+            {{ u.allocatedHours }}h / {{ u.maxCapacityHours }}h
+          </td>
+          <td style="min-width:180px">
+            <div class="util-bar-wrap">
+              <div class="util-bar">
+                <div class="util-bar-fill" [ngClass]="getUtilClass(u.utilizationStatus)" [style.width]="getBarWidth(u.utilizationPercent)"></div>
+              </div>
+              <span class="util-pct" [ngClass]="getUtilClass(u.utilizationStatus)" style="font-family:'DM Mono',monospace">
+                {{ u.utilizationPercent | number:'1.0-1' }}%
+              </span>
+            </div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="u.utilizationStatus === 'OPTIMAL' ? 'badge-green' : u.utilizationStatus === 'OVERLOADED' ? 'badge-red' : 'badge-gray'">
+              {{ u.utilizationStatus }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Legend -->
+  <div class="card" style="margin-top:16px">
+    <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Color Guide</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <div class="util-legend-item"><div class="util-legend-dot" style="background:var(--underutil)"></div>
+        <div><strong style="color:var(--underutil)">Underutilized</strong> &lt;70% — Employee has capacity for more tasks</div>
+      </div>
+      <div class="util-legend-item"><div class="util-legend-dot" style="background:var(--optimal)"></div>
+        <div><strong style="color:var(--optimal)">Optimal</strong> 70–100% — Employee is well-utilized</div>
+      </div>
+      <div class="util-legend-item"><div class="util-legend-dot" style="background:var(--overload)"></div>
+        <div><strong style="color:var(--overload)">Overloaded</strong> &gt;100% — Employee is over capacity, reassign work</div>
+      </div>
+    </div>
+  </div>
+</div>

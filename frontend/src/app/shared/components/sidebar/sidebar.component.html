@@ -1,0 +1,40 @@
+<!-- Mobile backdrop overlay -->
+<div class="sidebar-overlay" [class.overlay-open]="isOpen" (click)="close()"></div>
+
+<div class="sidebar" [class.sidebar-open]="isOpen">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">T</div>
+      <div>
+        <div class="sidebar-logo-text">ITA System</div>
+        <div class="sidebar-logo-sub">Task Allocator</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div *ngFor="let section of getSections()" class="sidebar-nav-section">
+      <div class="sidebar-nav-label">{{ section.title }}</div>
+      <div *ngFor="let item of section.items"
+        class="sidebar-nav-item"
+        [class.active]="isActive(item.route)"
+        [routerLink]="item.route"
+        (click)="onNavClick()">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+        <span *ngIf="item.badge && pendingCount > 0" class="badge-pill">{{ pendingCount }}</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user" (click)="goToProfile()">
+      <div class="user-avatar">{{ initials }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ displayName }}</div>
+        <div class="user-role">{{ roleLabel }}</div>
+      </div>
+      <button class="logout-btn" (click)="$event.stopPropagation(); logout()" title="Logout">⎋</button>
+    </div>
+  </div>
+</div>

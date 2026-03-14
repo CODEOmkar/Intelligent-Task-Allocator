@@ -1,0 +1,316 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div>
+      <div class="page-title">
+        {{ auth.isPM ? 'All Tasks' : auth.isDeptHead ? 'Department Tasks' : 'Team Tasks' }}
+      </div>
+      <div class="page-subtitle">{{ filtered.length }} tasks</div>
+    </div>
+    <button *ngIf="auth.canManageTasks()" class="btn btn-primary" (click)="openCreate()">+ New Task</button>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-search" style="flex:1">
+      <span class="search-icon">🔍</span>
+      <input class="form-control" placeholder="Search tasks or projects..."
+        [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+    </div>
+    <select class="form-control" style="width:150px"
+      [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="PENDING">Pending</option>
+      <option value="IN_PROGRESS">In Progress</option>
+      <option value="REVIEW">Review</option>
+      <option value="COMPLETED">Completed</option>
+    </select>
+    <select class="form-control" style="width:130px"
+      [(ngModel)]="filterPriority" (ngModelChange)="applyFilters()">
+      <option value="">All Priorities</option>
+      <option value="LOW">Low</option>
+      <option value="MEDIUM">Medium</option>
+      <option value="HIGH">High</option>
+      <option value="CRITICAL">Critical</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && filtered.length === 0" class="card empty-state" style="padding:60px">
+    <div class="empty-icon">📋</div>
+    <div class="empty-title">No tasks found</div>
+    <div class="empty-desc">
+      <ng-container *ngIf="auth.isPM">Create a task to get started</ng-container>
+      <ng-container *ngIf="auth.isDeptHead">No tasks assigned to your department yet</ng-container>
+      <ng-container *ngIf="auth.isTeamLead">No tasks assigned to your team yet</ng-container>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && filtered.length > 0">
+
+    <!-- Parent tasks + their sub-tasks -->
+    <ng-container *ngFor="let t of parentTasks">
+      <div class="card tl-card">
+
+        <!-- Parent row -->
+        <div class="tl-row">
+          <div class="tl-info">
+            <div class="tl-title-row">
+              <span class="tl-title">{{ t.title }}</span>
+              <span class="badge" [ngClass]="getTaskBadge(t.status)">{{ t.status | titlecase }}</span>
+              <span class="badge" [ngClass]="getPrBadge(t.priority)">{{ t.priority }}</span>
+            </div>
+            <div class="tl-meta">
+              <span *ngIf="t.project">📁 {{ t.project.name }}</span>
+              <span *ngIf="t.department">🏢 {{ t.department.name }}</span>
+              <span *ngIf="t.team">👥 {{ t.team.name }}</span>
+              <span *ngIf="t.estimatedHours">⏱ {{ t.estimatedHours }}h</span>
+              <span *ngIf="t.dueDate">📅 {{ t.dueDate | date:'MMM d' }}</span>
+            </div>
+          </div>
+          <div class="tl-actions">
+            <button *ngIf="canCreateSubTask(t)" class="btn btn-xs btn-accent-soft" (click)="openSubTask(t)">+ Sub-task</button>
+            <button *ngIf="auth.canManageTasks()" class="btn btn-icon btn-sm" (click)="openAssign(t)" title="Assign">👤</button>
+            <button *ngIf="auth.canManageTasks()" class="btn btn-icon btn-sm" (click)="openEdit(t)" title="Edit">✏</button>
+            <button *ngIf="auth.canManageProjects()" class="btn btn-icon btn-sm tl-danger" (click)="confirmDelete(t)">✕</button>
+          </div>
+        </div>
+
+        <!-- Sub-task rows -->
+        <ng-container *ngFor="let sub of getSubTasks(t.id)">
+          <div class="tl-subrow">
+            <div class="tl-info">
+              <div class="tl-title-row">
+                <span class="tl-arrow">↳</span>
+                <span class="tl-subtitle">{{ sub.title }}</span>
+                <span class="badge" [ngClass]="getTaskBadge(sub.status)" style="font-size:10px">{{ sub.status | titlecase }}</span>
+                <span class="badge" [ngClass]="getPrBadge(sub.priority)" style="font-size:10px">{{ sub.priority }}</span>
+              </div>
+              <div class="tl-meta">
+                <span *ngIf="sub.team">👥 {{ sub.team.name }}</span>
+                <span *ngIf="sub.estimatedHours">⏱ {{ sub.estimatedHours }}h</span>
+                <span *ngIf="sub.dueDate">📅 {{ sub.dueDate | date:'MMM d' }}</span>
+              </div>
+            </div>
+            <div class="tl-actions">
+              <button *ngIf="canCreateSubTask(sub)" class="btn btn-xs btn-accent-soft" (click)="openSubTask(sub)">+ Sub</button>
+              <button *ngIf="auth.canManageTasks()" class="btn btn-icon btn-sm" (click)="openAssign(sub)">👤</button>
+              <button *ngIf="auth.canManageTasks()" class="btn btn-icon btn-sm" (click)="openEdit(sub)">✏</button>
+              <button *ngIf="auth.canManageProjects()" class="btn btn-icon btn-sm tl-danger" (click)="confirmDelete(sub)">✕</button>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </ng-container>
+
+    <!-- Orphaned sub-tasks whose parent isn't in the current filtered list -->
+    <ng-container *ngFor="let t of filtered">
+      <div *ngIf="t.parentTask && !hasParentInView(t)" class="card tl-orphan">
+        <div class="tl-orphan-label">Sub-task of: {{ t.parentTask.title }}</div>
+        <div class="tl-row">
+          <div class="tl-info">
+            <div class="tl-title-row">
+              <span class="tl-title">{{ t.title }}</span>
+              <span class="badge" [ngClass]="getTaskBadge(t.status)">{{ t.status | titlecase }}</span>
+              <span class="badge" [ngClass]="getPrBadge(t.priority)">{{ t.priority }}</span>
+            </div>
+          </div>
+          <div class="tl-actions">
+            <button *ngIf="auth.canManageTasks()" class="btn btn-icon btn-sm" (click)="openAssign(t)">👤</button>
+            <button *ngIf="auth.canManageTasks()" class="btn btn-icon btn-sm" (click)="openEdit(t)">✏</button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
+
+<!-- ======== Create / Edit / Sub-task Modal ======== -->
+<div class="modal-overlay" *ngIf="showForm" (click)="showForm=false">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">
+          <ng-container *ngIf="formMode === 'edit'">Edit Task</ng-container>
+          <ng-container *ngIf="formMode === 'subtask'">Create Sub-task</ng-container>
+          <ng-container *ngIf="formMode === 'create'">New Task</ng-container>
+        </div>
+        <div *ngIf="formMode === 'subtask' && parentTask" class="tl-parent-label">
+          Under: <strong>{{ parentTask.title }}</strong>
+        </div>
+      </div>
+      <button class="modal-close" (click)="showForm=false">×</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input class="form-control" [(ngModel)]="editForm.title" placeholder="Task title">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" [(ngModel)]="editForm.description" rows="2"
+          placeholder="Describe the task..."></textarea>
+      </div>
+
+      <!-- PM: must pick dept + project. PM never picks team. -->
+      <div class="two-col" *ngIf="auth.isPM && formMode !== 'subtask'">
+        <div class="form-group">
+          <label class="form-label">Project *</label>
+          <select class="form-control" [(ngModel)]="editForm.projectId">
+            <option [ngValue]="null">Select project...</option>
+            <option *ngFor="let p of projects" [ngValue]="p.id">{{ p.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department * <span style="color:#dc2626">required</span></label>
+          <select class="form-control" [(ngModel)]="editForm.departmentId" (ngModelChange)="onDeptChange()">
+            <option [ngValue]="null">— Select department —</option>
+            <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dept head creating a sub-task: pick which team handles it -->
+      <div class="form-group" *ngIf="auth.isDeptHead && formMode === 'subtask'">
+        <label class="form-label">Assign Sub-task to Team *</label>
+        <select class="form-control" [(ngModel)]="editForm.teamId">
+          <option [ngValue]="null">— Select team —</option>
+          <option *ngFor="let tm of filteredTeams" [ngValue]="tm.id">{{ tm.name }}</option>
+        </select>
+        <div style="font-size:11px;color:#64748b;margin-top:4px">Team leads will see this and assign to their team members.</div>
+      </div>
+
+      <div class="three-col">
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-control" [(ngModel)]="editForm.priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estimated Hours</label>
+          <input type="number" class="form-control" [(ngModel)]="editForm.estimatedHours" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input type="date" class="form-control" [(ngModel)]="editForm.dueDate">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control" [(ngModel)]="editForm.status">
+          <option value="PENDING">Pending</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="REVIEW">Review</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngIf="skills.length > 0">
+        <label class="form-label">Required Skills</label>
+        <div class="skill-chips">
+          <div *ngFor="let sk of skills"
+            class="skill-chip"
+            [ngClass]="editForm.skillIds.includes(sk.id) ? 'skill-chip-on' : 'skill-chip-off'"
+            (click)="toggleSkill(sk.id)">
+            {{ sk.name }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="showForm=false">Cancel</button>
+      <button class="btn btn-primary" (click)="save()" [disabled]="saving || !editForm.title">
+        <ng-container *ngIf="!saving">
+          <ng-container *ngIf="formMode === 'edit'">Save Changes</ng-container>
+          <ng-container *ngIf="formMode === 'subtask'">Create Sub-task</ng-container>
+          <ng-container *ngIf="formMode === 'create'">Create Task</ng-container>
+        </ng-container>
+        <ng-container *ngIf="saving">Saving...</ng-container>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== Assign Modal ======== -->
+<div class="modal-overlay" *ngIf="showAssign" (click)="showAssign=false">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Assign: {{ assignTask?.title }}</div>
+        <div class="tl-parent-label">
+          <ng-container *ngIf="auth.isPM">All approved employees and team leads</ng-container>
+          <ng-container *ngIf="auth.isDeptHead">Team leads in your department</ng-container>
+          <ng-container *ngIf="auth.isTeamLead">Approved employees in your team</ng-container>
+        </div>
+      </div>
+      <button class="modal-close" (click)="showAssign=false">×</button>
+    </div>
+    <div class="modal-body">
+
+      <div *ngIf="taskAssignments.length > 0" style="margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:8px">Currently Assigned</div>
+        <div *ngFor="let a of taskAssignments" class="assign-current-row">
+          <div class="assign-person">
+            <div class="avatar" style="width:30px;height:30px;font-size:11px">
+              {{ a.employee?.firstName?.[0] }}{{ a.employee?.lastName?.[0] }}
+            </div>
+            <div>
+              <div class="assign-name">{{ a.employee?.firstName }} {{ a.employee?.lastName }}</div>
+              <div class="assign-meta">{{ a.employee?.role }} · {{ a.completionPercentage }}% done</div>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-danger" (click)="removeAssignment(a)">Remove</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <input class="form-control" [(ngModel)]="assignNotes" placeholder="Assignment instructions...">
+      </div>
+
+      <div class="form-label" style="margin-bottom:8px">Available People</div>
+      <div *ngIf="assignableUsers.length === 0" class="empty-state" style="padding:30px">
+        <div class="empty-icon">👤</div>
+        <div class="empty-title">No assignable people found</div>
+      </div>
+
+      <div class="assign-list">
+        <div *ngFor="let u of assignableUsers"
+          class="assign-row"
+          [ngClass]="isAssigned(u.id) ? 'assign-row-done' : 'assign-row-free'">
+          <div class="assign-person">
+            <div class="avatar" style="width:30px;height:30px;font-size:11px">{{ u.firstName[0] }}{{ u.lastName[0] }}</div>
+            <div>
+              <div class="assign-name">{{ u.firstName }} {{ u.lastName }}</div>
+              <div class="assign-meta">{{ u.role }} · {{ u.team?.name || u.department?.name || 'No team' }}</div>
+            </div>
+          </div>
+          <div class="assign-right">
+            <span class="assign-hours">{{ u.allocatedHours || 0 }}h</span>
+            <button *ngIf="!isAssigned(u.id)" class="btn btn-success btn-sm" (click)="assignUser(u)">Assign</button>
+            <span *ngIf="isAssigned(u.id)" class="badge badge-green">Assigned</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<app-confirm
+  [show]="showDelConfirm"
+  title="Delete Task"
+  [message]="'Delete: ' + (selected?.title || '') + '?'"
+  (confirm)="doDelete()"
+  (cancel)="showDelConfirm=false">
+</app-confirm>

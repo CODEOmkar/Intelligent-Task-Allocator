@@ -1,0 +1,57 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Pending Approvals</div>
+      <div class="page-subtitle">{{ pending.length }} accounts awaiting review</div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap"><div class="spinner"></div></div>
+
+  <div *ngIf="!loading && pending.length === 0" class="card empty-state" style="padding:80px">
+    <div class="empty-icon" style="color:var(--success)">✓</div>
+    <div class="empty-title">All clear!</div>
+    <div class="empty-desc">No pending approvals at this time</div>
+  </div>
+
+  <div *ngIf="!loading && pending.length > 0" class="card" style="padding:0">
+    <table class="data-table">
+      <thead>
+        <tr><th>Person</th><th>Role</th><th>Department</th><th>Team</th><th>Experience</th><th>Skills</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of pending">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="avatar">{{ u.firstName[0] }}{{ u.lastName[0] }}</div>
+              <div>
+                <div style="font-weight:600">{{ u.firstName }} {{ u.lastName }}</div>
+                <div style="font-size:12px;color:var(--text-muted)">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-blue">{{ formatRole(u.role) }}</span></td>
+          <td>{{ u.department?.name || '—' }}</td>
+          <td>{{ u.team?.name || '—' }}</td>
+          <td>{{ u.experienceYears || 0 }} yrs</td>
+          <td>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;max-width:200px">
+              <span *ngFor="let s of u.skills" class="skill-chip" style="font-size:11px">{{ s.name }}</span>
+              <span *ngIf="!u.skills?.length" style="color:var(--text-muted)">—</span>
+            </div>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" (click)="approve(u)" [disabled]="processing === u.id">
+                {{ processing === u.id ? '...' : '✓ Approve' }}
+              </button>
+              <button class="btn btn-danger btn-sm" (click)="reject(u)" [disabled]="processing === u.id">
+                {{ processing === u.id ? '...' : '✕ Reject' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

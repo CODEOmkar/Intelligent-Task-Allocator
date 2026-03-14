@@ -1,0 +1,50 @@
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px">
+  <div style="width:100%;max-width:420px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;background:var(--accent);border-radius:14px;font-size:22px;color:white;font-weight:800;margin-bottom:14px">T</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px">Intelligent Task Allocator</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Enterprise Task Management System</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div *ngIf="error" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--danger)">{{ error }}</div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" placeholder="you@company.com" [(ngModel)]="email" (keyup.enter)="login()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" placeholder="••••••••" [(ngModel)]="password" (keyup.enter)="login()">
+        </div>
+
+        <button class="btn btn-primary w-full" style="justify-content:center;margin-top:8px" (click)="login()" [disabled]="loading">
+          {{ loading ? 'Signing in...' : 'Sign In' }}
+        </button>
+
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted)">
+          New here? <a routerLink="/register" style="color:var(--accent);font-weight:600;margin-left:4px">Create an account</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo credentials -->
+    <div style="margin-top:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px">
+      <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Quick Demo Login</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div *ngFor="let cred of credentials"
+          (click)="fill(cred.email, cred.pass)"
+          style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:all 0.15s"
+          [style.borderColor]="email === cred.email ? 'var(--accent)' : 'transparent'"
+          [style.background]="email === cred.email ? 'var(--accent-subtle)' : 'var(--bg-hover)'">
+          <div>
+            <div style="font-size:12px;font-weight:600;" [style.color]="cred.color">{{ cred.role }}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace">{{ cred.email }}</div>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted)">click to fill →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
