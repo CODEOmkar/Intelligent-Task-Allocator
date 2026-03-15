@@ -13,6 +13,8 @@ export class UtilizationComponent implements OnInit {
   loading = true;
   filterStatus = '';
   searchTerm = '';
+  currentPage = 1;
+  pageSize = 5;
 
   constructor(public auth: AuthService, private userService: UserService) {}
 
@@ -37,6 +39,20 @@ export class UtilizationComponent implements OnInit {
       result = result.filter(u => u.name.toLowerCase().includes(t) || (u.teamName || '').toLowerCase().includes(t));
     }
     this.filtered = result;
+    this.currentPage = 1;
+  }
+
+  get paginated(): UtilizationDTO[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.filtered.slice(start, start + this.pageSize);
+  }
+
+  nextPage() {
+    if (this.currentPage * this.pageSize < this.filtered.length) this.currentPage++;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.currentPage--;
   }
 
   get underutilized(): number { return this.metrics.filter(u => u.utilizationStatus === 'UNDERUTILIZED').length; }

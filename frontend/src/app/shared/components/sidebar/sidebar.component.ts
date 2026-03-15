@@ -63,7 +63,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.sub.add(
       this.sidebarSvc.open$.subscribe(open => this.isOpen = open)
     );
-    if (this.auth.isPM) this.loadPendingCount();
+    if (this.auth.isPM) {
+      this.loadPendingCount();
+      this.sub.add(
+        this.userService.pendingCountChanged.subscribe(() => this.loadPendingCount())
+      );
+    }
   }
 
   ngOnDestroy(): void { this.sub.unsubscribe(); }

@@ -28,7 +28,10 @@ export class ApprovalsComponent implements OnInit {
     this.processing = user.id;
     this.userService.approve(user.id).subscribe(r => {
       this.processing = null;
-      if (r.success) this.pending = this.pending.filter(u => u.id !== user.id);
+      if (r.success) {
+        this.pending = this.pending.filter(u => u.id !== user.id);
+        this.userService.pendingCountChanged.next();
+      }
     });
   }
 
@@ -36,7 +39,10 @@ export class ApprovalsComponent implements OnInit {
     this.processing = user.id;
     this.userService.reject(user.id).subscribe(r => {
       this.processing = null;
-      if (r.success) this.pending = this.pending.filter(u => u.id !== user.id);
+      if (r.success) {
+        this.pending = this.pending.filter(u => u.id !== user.id);
+        this.userService.pendingCountChanged.next();
+      }
     });
   }
 

@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { ApiResponse, User, Department, Team, Skill, Project, Task, TaskAssignment, UtilizationDTO } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
+  public pendingCountChanged = new Subject<void>();
+  
   constructor(private http: HttpClient) {}
   getAll(): Observable<ApiResponse<User[]>> { return this.http.get<ApiResponse<User[]>>('/api/users'); }
   getById(id: number): Observable<ApiResponse<User>> { return this.http.get<ApiResponse<User>>(`/api/users/${id}`); }

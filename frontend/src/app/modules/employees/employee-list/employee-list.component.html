@@ -34,19 +34,20 @@
   </div>
 
   <div *ngIf="!loading" class="card" style="padding:0">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Person</th>
-          <th>Role</th>
-          <th>Department / Team</th>
-          <th>Utilization</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let u of filtered" [routerLink]="['/employees', u.id]" style="cursor:pointer">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Person</th>
+            <th>Role</th>
+            <th>Department / Team</th>
+            <th>Utilization</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let u of paginated" [routerLink]="['/employees', u.id]" style="cursor:pointer">
           <td>
             <div style="display:flex;align-items:center;gap:10px">
               <div class="avatar">{{ u.firstName[0] }}{{ u.lastName[0] }}</div>
@@ -72,8 +73,14 @@
           </td>
           <td><span class="badge" [ngClass]="getStatusBadge(u.approvalStatus)">{{ u.approvalStatus }}</span></td>
           <td><span style="color:var(--text-muted);font-size:18px">›</span></td>
-        </tr>
-      </tbody>
-    </table>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div *ngIf="filtered.length > pageSize" style="padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid var(--border);gap:8px">
+      <button class="btn btn-secondary btn-sm" (click)="prevPage()" [disabled]="currentPage === 1">← Back</button>
+      <button class="btn btn-secondary btn-sm" (click)="nextPage()" [disabled]="currentPage * pageSize >= filtered.length">Next →</button>
+    </div>
   </div>
 </div>
