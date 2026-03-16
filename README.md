@@ -1,7 +1,5 @@
 # Intelligent Task Allocator (ITA)
 
-https://intelligent-task-allocator.demo.app
-
 Optimize workforce efficiency, streamline project execution, and balance workloads effortlessly.
 
 Intelligent Task Allocator (ITA) is a robust, enterprise-grade full-stack management application designed to eliminate bottlenecks in team coordination. Whether you are leading a massive software development lifecycle, tracking cross-departmental initiatives, or balancing resource allocation, ITA provides a seamless, transparent, and secure dashboard to govern every phase of a project.
