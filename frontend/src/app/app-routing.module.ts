@@ -16,8 +16,10 @@ import { TeamsComponent } from './modules/teams/teams.component';
 import { DepartmentsComponent } from './modules/departments/departments.component';
 import { SkillsComponent } from './modules/skills/skills.component';
 
+import { LandingComponent } from './core/components/landing/landing.component';
+
 const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: '', component: LandingComponent, pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   {

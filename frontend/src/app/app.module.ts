@@ -27,6 +27,7 @@ import { TeamsComponent } from './modules/teams/teams.component';
 import { DepartmentsComponent } from './modules/departments/departments.component';
 import { SkillsComponent } from './modules/skills/skills.component';
 import { CountByStatusPipe } from './shared/pipes/count-by-status.pipe';
+import { LandingComponent } from './core/components/landing/landing.component';
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import { CountByStatusPipe } from './shared/pipes/count-by-status.pipe';
     UtilizationComponent, ApprovalsComponent,
     TeamsComponent, DepartmentsComponent, SkillsComponent,
     CountByStatusPipe,
+    LandingComponent,
   ],
   imports: [BrowserModule, CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule, RouterModule, AppRoutingModule],
   providers: [
