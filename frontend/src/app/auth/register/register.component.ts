@@ -23,7 +23,9 @@ export class RegisterComponent implements OnInit {
     private deptService: DepartmentService,
     private teamService: TeamService,
     private skillService: SkillService
-  ) {}
+  ) {
+    if (this.auth.isLoggedIn) this.router.navigate(['/dashboard']);
+  }
 
   ngOnInit(): void {
     this.deptService.getAll().subscribe(r => { if (r.success) this.departments = r.data; });

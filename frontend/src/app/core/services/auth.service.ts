@@ -23,18 +23,23 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('ita_auth');
+    sessionStorage.removeItem('ita_auth');
+    localStorage.removeItem('ita_auth'); // Clean up old lingering login
     this._auth$.next(null);
     this.router.navigate(['/login']);
   }
 
   private save(auth: AuthState): void {
-    localStorage.setItem('ita_auth', JSON.stringify(auth));
+    sessionStorage.setItem('ita_auth', JSON.stringify(auth));
     this._auth$.next(auth);
   }
 
   private loadFromStorage(): AuthState | null {
-    try { const s = localStorage.getItem('ita_auth'); return s ? JSON.parse(s) : null; }
+    try { 
+      localStorage.removeItem('ita_auth'); // Clear any permanent logins
+      const s = sessionStorage.getItem('ita_auth'); 
+      return s ? JSON.parse(s) : null; 
+    }
     catch { return null; }
   }
 
