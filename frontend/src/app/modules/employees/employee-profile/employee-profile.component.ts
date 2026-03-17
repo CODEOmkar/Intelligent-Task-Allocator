@@ -12,6 +12,7 @@ export class EmployeeProfileComponent implements OnInit {
   isOwnProfile = false;
   editMode = false;
   saving = false;
+  saveError = '';
 
   departments: Department[] = [];
   teams: Team[] = [];
@@ -72,6 +73,7 @@ export class EmployeeProfileComponent implements OnInit {
     this.editForm = {
       firstName: this.user.firstName,
       lastName: this.user.lastName,
+      email: this.user.email,
       bio: this.user.bio || '',
       experienceYears: this.user.experienceYears || 0,
       maxCapacityHours: this.user.maxCapacityHours || 40,
@@ -90,12 +92,41 @@ export class EmployeeProfileComponent implements OnInit {
   isSkillSelected(id: number): boolean { return this.selectedSkillIds.includes(id); }
 
   save(): void {
+    this.saveError = '';
     if (!this.user) return;
+
+    if (!this.editForm.firstName || !this.editForm.lastName || !this.editForm.email) {
+      this.saveError = 'Name and Email are required.';
+      return;
+    }
+    if (this.editForm.firstName.length < 2 || this.editForm.lastName.length < 2) {
+      this.saveError = 'Name must be at least 2 characters.';
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.editForm.email)) {
+      this.saveError = 'Invalid email format.';
+      return;
+    }
+
     this.saving = true;
     const data: any = { ...this.editForm, skillIds: this.selectedSkillIds, selfEdit: this.isOwnProfile && !this.auth.isPM };
-    this.userService.update(this.user.id, data).subscribe(r => {
-      this.saving = false;
-      if (r.success) { this.user = r.data; this.editMode = false; }
+    this.userService.update(this.user.id, data).subscribe({
+      next: r => {
+        this.saving = false;
+        if (r.success) { 
+          this.user = r.data; 
+          this.editMode = false; 
+          if (this.isOwnProfile) {
+            this.auth.updateProfileData(this.user.firstName, this.user.lastName, this.user.email);
+          }
+        }
+        else { this.saveError = r.message || 'Failed to update'; }
+      },
+      error: err => {
+        this.saving = false;
+        this.saveError = err.error?.message || 'Failed to update profile';
+      }
     });
   }
 

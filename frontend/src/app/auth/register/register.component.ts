@@ -16,6 +16,44 @@ export class RegisterComponent implements OnInit {
   teams: Team[] = [];
   skills: Skill[] = [];
   error = ''; loading = false;
+  showPassword = false;
+
+  get passwordCriteria() {
+    const p = this.form.password || '';
+    return {
+      length: p.length >= 8,
+      upper: /[A-Z]/.test(p),
+      lower: /[a-z]/.test(p),
+      digit: /[0-9]/.test(p),
+      special: /[@#$%!^&+=*]/.test(p)
+    };
+  }
+
+  get passwordStrength(): number {
+    const c = this.passwordCriteria;
+    let score = 0;
+    if (c.length) score++;
+    if (c.upper) score++;
+    if (c.lower) score++;
+    if (c.digit) score++;
+    if (c.special) score++;
+    return score;
+  }
+
+  get passwordStrengthLabel(): string {
+    const s = this.passwordStrength;
+    if (s === 0) return '';
+    if (s <= 2) return 'Weak';
+    if (s <= 4) return 'Good';
+    return 'Strong';
+  }
+
+  get passwordStrengthColor(): string {
+    const s = this.passwordStrength;
+    if (s <= 2) return 'var(--danger)';
+    if (s <= 4) return 'var(--warning)';
+    return 'var(--success)';
+  }
 
   constructor(
     private auth: AuthService,
@@ -52,11 +90,22 @@ export class RegisterComponent implements OnInit {
       if (!this.form.email || !this.form.firstName || !this.form.lastName) {
         this.error = 'Please fill all required fields'; return;
       }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.form.email)) {
+        this.error = 'Invalid email format'; return;
+      }
+      if (this.form.firstName.length < 2 || this.form.lastName.length < 2) {
+        this.error = 'Name must be at least 2 characters'; return;
+      }
+      if (!this.form.password) {
+        this.error = 'Password is required'; return;
+      }
+      const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!^&+=*]).{8,}$/;
+      if (!passwordRegex.test(this.form.password)) {
+        this.error = 'Password must be 8+ chars, have 1 upper, 1 lower, 1 digit, and 1 special char'; return;
+      }
       if (this.form.password !== this.form.confirmPassword) {
         this.error = 'Passwords do not match'; return;
-      }
-      if (this.form.password.length < 6) {
-        this.error = 'Password must be at least 6 characters'; return;
       }
     }
     this.error = '';

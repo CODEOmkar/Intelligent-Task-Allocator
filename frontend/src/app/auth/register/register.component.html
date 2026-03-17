@@ -31,24 +31,73 @@
           <div class="two-col">
             <div class="form-group">
               <label class="form-label">First Name *</label>
-              <input class="form-control" [(ngModel)]="form.firstName" placeholder="John">
+              <input class="form-control" name="firstName" [(ngModel)]="form.firstName" #firstName="ngModel" placeholder="John" required minlength="2">
+              <div *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
+                <span *ngIf="firstName.errors?.['required']">First name is required.</span>
+                <span *ngIf="firstName.errors?.['minlength']">Must be at least 2 characters.</span>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Last Name *</label>
-              <input class="form-control" [(ngModel)]="form.lastName" placeholder="Doe">
+              <input class="form-control" name="lastName" [(ngModel)]="form.lastName" #lastName="ngModel" placeholder="Doe" required minlength="2">
+              <div *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
+                <span *ngIf="lastName.errors?.['required']">Last name is required.</span>
+                <span *ngIf="lastName.errors?.['minlength']">Must be at least 2 characters.</span>
+              </div>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Email *</label>
-            <input type="email" class="form-control" [(ngModel)]="form.email" placeholder="you@company.com">
+            <input type="email" class="form-control" name="email" [(ngModel)]="form.email" #email="ngModel" placeholder="you@company.com" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$">
+            <div *ngIf="email.invalid && (email.dirty || email.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
+              <span *ngIf="email.errors?.['required']">Email is required.</span>
+              <span *ngIf="email.errors?.['pattern']">Invalid email format.</span>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Password *</label>
-            <input type="password" class="form-control" [(ngModel)]="form.password" placeholder="Minimum 6 characters">
+            <div style="position:relative">
+              <input [type]="showPassword ? 'text' : 'password'" class="form-control" name="password" [(ngModel)]="form.password" #password="ngModel" placeholder="Minimum 8 characters" required pattern="^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!^&+=*]).{8,}$" style="padding-right: 40px;">
+              <button type="button" (click)="showPassword = !showPassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--bg-hover);border:1px solid var(--border);cursor:pointer;color:var(--text-secondary);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;outline:none;text-transform:uppercase;" title="Toggle Password Visibility">
+                <span *ngIf="showPassword">Hide</span>
+                <span *ngIf="!showPassword">Show</span>
+              </button>
+            </div>
+            <div *ngIf="form.password" style="margin-top:10px">
+              <div style="display:flex;gap:4px;height:4px;margin-bottom:6px">
+                <div style="flex:1;border-radius:2px;background:var(--border)" [style.background]="passwordStrength >= 1 ? passwordStrengthColor : 'var(--border)'"></div>
+                <div style="flex:1;border-radius:2px;background:var(--border)" [style.background]="passwordStrength >= 3 ? passwordStrengthColor : 'var(--border)'"></div>
+                <div style="flex:1;border-radius:2px;background:var(--border)" [style.background]="passwordStrength >= 5 ? passwordStrengthColor : 'var(--border)'"></div>
+              </div>
+              <div style="font-size:12px;font-weight:600" [style.color]="passwordStrengthColor">{{ passwordStrengthLabel }}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:11px;color:var(--text-muted)">
+                <div [style.color]="passwordCriteria.length ? 'var(--success)' : ''">
+                  <span *ngIf="passwordCriteria.length">✓</span><span *ngIf="!passwordCriteria.length">○</span> At least 8 characters
+                </div>
+                <div [style.color]="passwordCriteria.upper ? 'var(--success)' : ''">
+                  <span *ngIf="passwordCriteria.upper">✓</span><span *ngIf="!passwordCriteria.upper">○</span> At least 1 uppercase letter
+                </div>
+                <div [style.color]="passwordCriteria.lower ? 'var(--success)' : ''">
+                  <span *ngIf="passwordCriteria.lower">✓</span><span *ngIf="!passwordCriteria.lower">○</span> At least 1 lowercase letter
+                </div>
+                <div [style.color]="passwordCriteria.digit ? 'var(--success)' : ''">
+                  <span *ngIf="passwordCriteria.digit">✓</span><span *ngIf="!passwordCriteria.digit">○</span> At least 1 number
+                </div>
+                <div [style.color]="passwordCriteria.special ? 'var(--success)' : ''" style="grid-column: 1 / -1">
+                  <span *ngIf="passwordCriteria.special">✓</span><span *ngIf="!passwordCriteria.special">○</span> At least 1 special char (@#$%!^&+=*)
+                </div>
+              </div>
+            </div>
+            <div *ngIf="!form.password" style="color:var(--text-muted);font-size:12px;margin-top:6px">
+              Password must contain at least 8 chars, including uppercase, lowercase, digit, and special char.
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Confirm Password *</label>
-            <input type="password" class="form-control" [(ngModel)]="form.confirmPassword" placeholder="Repeat password">
+            <input type="password" class="form-control" name="confirmPassword" [(ngModel)]="form.confirmPassword" #confirmPassword="ngModel" placeholder="Repeat password" required>
+            <div *ngIf="(confirmPassword.dirty || confirmPassword.touched) && form.password !== form.confirmPassword" style="color:var(--danger);font-size:12px;margin-top:4px">
+              <span>Passwords do not match.</span>
+            </div>
           </div>
           <button class="btn btn-primary w-full" style="justify-content:center;margin-top:4px" (click)="nextStep()">Continue →</button>
         </div>

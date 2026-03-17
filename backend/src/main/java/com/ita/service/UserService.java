@@ -55,6 +55,15 @@ public class UserService {
 
         if (data.containsKey("firstName")) u.setFirstName((String) data.get("firstName"));
         if (data.containsKey("lastName")) u.setLastName((String) data.get("lastName"));
+        if (data.containsKey("email")) {
+            String newEmail = (String) data.get("email");
+            if (newEmail != null && !newEmail.equals(u.getEmail())) {
+                if (userRepo.existsByEmail(newEmail)) {
+                    throw new RuntimeException("Email is already in use");
+                }
+                u.setEmail(newEmail);
+            }
+        }
         if (data.containsKey("bio")) u.setBio((String) data.get("bio"));
         if (data.containsKey("experienceYears")) u.setExperienceYears((Integer) data.get("experienceYears"));
         if (data.containsKey("maxCapacityHours")) u.setMaxCapacityHours((Integer) data.get("maxCapacityHours"));

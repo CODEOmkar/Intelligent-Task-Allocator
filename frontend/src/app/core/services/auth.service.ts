@@ -66,4 +66,13 @@ export class AuthService {
     const auth = this.auth;
     if (auth) { auth.approvalStatus = status; this.save(auth); }
   }
+
+  // Update stored profile data after user edits their profile
+  updateProfileData(firstName: string, lastName: string, email: string): void {
+    const current = this.auth;
+    if (current) {
+      const updated = { ...current, firstName, lastName, email };
+      this.save(updated);
+    }
+  }
 }

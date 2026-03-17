@@ -14,11 +14,24 @@
 
         <div class="form-group">
           <label class="form-label">Email</label>
-          <input type="email" class="form-control" placeholder="you@company.com" [(ngModel)]="email" (keyup.enter)="login()">
+          <input type="email" class="form-control" name="email" placeholder="you@company.com" [(ngModel)]="email" #emailCtrl="ngModel" (keyup.enter)="login()" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$">
+          <div *ngIf="emailCtrl.invalid && (emailCtrl.dirty || emailCtrl.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
+            <span *ngIf="emailCtrl.errors?.['required']">Email is required.</span>
+            <span *ngIf="emailCtrl.errors?.['pattern']">Invalid email format.</span>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Password</label>
-          <input type="password" class="form-control" placeholder="••••••••" [(ngModel)]="password" (keyup.enter)="login()">
+          <div style="position:relative">
+            <input [type]="showPassword ? 'text' : 'password'" class="form-control" name="password" placeholder="••••••••" [(ngModel)]="password" #passwordCtrl="ngModel" (keyup.enter)="login()" required style="padding-right: 40px;">
+            <button type="button" (click)="showPassword = !showPassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--bg-hover);border:1px solid var(--border);cursor:pointer;color:var(--text-secondary);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;outline:none;text-transform:uppercase;" title="Toggle Password Visibility">
+              <span *ngIf="showPassword">Hide</span>
+              <span *ngIf="!showPassword">Show</span>
+            </button>
+          </div>
+          <div *ngIf="passwordCtrl.invalid && (passwordCtrl.dirty || passwordCtrl.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
+            <span *ngIf="passwordCtrl.errors?.['required']">Password is required.</span>
+          </div>
         </div>
 
         <button class="btn btn-primary w-full" style="justify-content:center;margin-top:8px" (click)="login()" [disabled]="loading">

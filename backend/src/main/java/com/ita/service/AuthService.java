@@ -27,9 +27,9 @@ public class AuthService {
 
     public JwtResponse login(LoginRequest req) {
         User u = userRepo.findByEmail(req.getEmail())
-            .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+            .orElseThrow(() -> new RuntimeException("Invalid email"));
         if (!encoder.matches(req.getPassword(), u.getPassword()))
-            throw new RuntimeException("Invalid email or password");
+            throw new RuntimeException("Invalid password");
         return buildResponse(u, jwtUtil.generate(u.getEmail(), u.getRole().name(), u.getId()));
     }
 

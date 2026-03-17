@@ -8,6 +8,7 @@ export class LoginComponent {
   password = '';
   loading = false;
   error = '';
+  showPassword = false;
 
   credentials = [
     { role: 'Project Manager', email: 'projectmanager@mail.com', pass: 'projectmanager123', color: '#a78bfa' },
@@ -23,11 +24,24 @@ export class LoginComponent {
   fill(email: string, pass: string): void { this.email = email; this.password = pass; }
 
   login(): void {
-    if (!this.email || !this.password) { this.error = 'Please enter email and password.'; return; }
+    if (!this.email && !this.password) {
+      this.error = 'Invalid email and password';
+      return;
+    }
+    if (!this.email) {
+      this.error = 'Invalid email';
+      return;
+    }
+    if (!this.password) {
+      this.error = 'Invalid password';
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.email)) { this.error = 'Invalid email'; return; }
     this.loading = true; this.error = '';
     this.auth.login(this.email, this.password).subscribe({
       next: r => { this.loading = false; if (r.success) this.router.navigate(['/dashboard']); else this.error = r.message; },
-      error: e => { this.loading = false; this.error = e.error?.message || 'Invalid credentials'; }
+      error: e => { this.loading = false; this.error = e.error?.message || 'Invalid email or password'; }
     });
   }
 }
