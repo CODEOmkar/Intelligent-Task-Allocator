@@ -15,6 +15,7 @@ export class ProjectsComponent implements OnInit {
   selected: Project | null = null;
   editForm: any = {};
   formMode: 'create' | 'edit' = 'create';
+  get today(): string { return new Date().toISOString().split('T')[0]; }
 
   constructor(public auth: AuthService, private projectService: ProjectService) {}
 

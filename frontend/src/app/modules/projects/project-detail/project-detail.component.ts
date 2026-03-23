@@ -16,6 +16,7 @@ export class ProjectDetailComponent implements OnInit {
   assigningTask: Task | null = null;
   showDeleteConfirm = false;
   deletingTask: Task | null = null;
+  get today(): string { return new Date().toISOString().split('T')[0]; }
 
   departments: Department[] = [];
   teams: Team[] = [];

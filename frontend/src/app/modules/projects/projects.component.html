@@ -90,11 +90,11 @@
       <div class="two-col">
         <div class="form-group">
           <label class="form-label">Start Date</label>
-          <input type="date" class="form-control" [(ngModel)]="editForm.startDate">
+          <input type="date" class="form-control" [(ngModel)]="editForm.startDate" [min]="today">
         </div>
         <div class="form-group">
           <label class="form-label">Deadline</label>
-          <input type="date" class="form-control" [(ngModel)]="editForm.deadline">
+          <input type="date" class="form-control" [(ngModel)]="editForm.deadline" [min]="today">
         </div>
       </div>
     </div>

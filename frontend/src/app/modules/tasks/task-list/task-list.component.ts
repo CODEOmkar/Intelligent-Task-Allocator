@@ -18,6 +18,7 @@ export class TaskListComponent implements OnInit {
   parentTask: Task | null = null;
   editForm: any = {};
   saving = false;
+  get today(): string { return new Date().toISOString().split('T')[0]; }
 
   // Lists for dropdowns
   projects: Project[] = [];
