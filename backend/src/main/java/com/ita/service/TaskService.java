@@ -27,6 +27,16 @@ public class TaskService {
     @Autowired private UserService userService;
 
     public Task create(TaskDTO dto) {
+        if (dto.getTitle() != null) {
+            Long projId = dto.getProjectId();
+            if (projId == null && dto.getParentTaskId() != null) {
+                 Task parent = taskRepo.findById(dto.getParentTaskId()).orElse(null);
+                 if (parent != null && parent.getProject() != null) projId = parent.getProject().getId();
+            }
+            if (projId != null && taskRepo.existsByTitleIgnoreCaseAndProjectId(dto.getTitle(), projId)) {
+                throw new RuntimeException("Task with title '" + dto.getTitle() + "' already exists in this project");
+            }
+        }
         Task t = new Task();
         applyDTO(t, dto);
         return taskRepo.save(t);
@@ -34,6 +44,12 @@ public class TaskService {
 
     public Task update(Long id, TaskDTO dto) {
         Task t = taskRepo.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
+        if (dto.getTitle() != null && !t.getTitle().equalsIgnoreCase(dto.getTitle())) {
+            Long projId = t.getProject() != null ? t.getProject().getId() : null;
+            if (projId != null && taskRepo.existsByTitleIgnoreCaseAndProjectId(dto.getTitle(), projId)) {
+                throw new RuntimeException("Task with title '" + dto.getTitle() + "' already exists in this project");
+            }
+        }
         applyDTO(t, dto);
         if ("COMPLETED".equals(dto.getStatus())) autoCompleteAssignments(id);
         return taskRepo.save(t);

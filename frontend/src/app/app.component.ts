@@ -18,6 +18,7 @@ import { AuthService } from './core/services/auth.service';
     <ng-template #authPages>
       <router-outlet></router-outlet>
     </ng-template>
+    <app-toast></app-toast>
   `
 })
 export class AppComponent {

@@ -27,6 +27,7 @@ export class ProjectService {
   constructor(private http: HttpClient) {}
   getAll(): Observable<ApiResponse<Project[]>> { return this.http.get<ApiResponse<Project[]>>('/api/projects'); }
   getActive(): Observable<ApiResponse<Project[]>> { return this.http.get<ApiResponse<Project[]>>('/api/projects/active'); }
+  getForEmployee(employeeId: number): Observable<ApiResponse<Project[]>> { return this.http.get<ApiResponse<Project[]>>(`/api/projects/employee/${employeeId}`); }
   getById(id: number): Observable<ApiResponse<Project>> { return this.http.get<ApiResponse<Project>>(`/api/projects/${id}`); }
   create(data: any): Observable<ApiResponse<Project>> { return this.http.post<ApiResponse<Project>>('/api/projects', data); }
   update(id: number, data: any): Observable<ApiResponse<Project>> { return this.http.put<ApiResponse<Project>>(`/api/projects/${id}`, data); }

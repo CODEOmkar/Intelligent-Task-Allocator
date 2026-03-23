@@ -27,7 +27,11 @@ export class DashboardComponent implements OnInit {
     let loaded = 0;
     const done = () => { if (++loaded >= 3) this.loading = false; };
 
-    this.projectService.getActive().subscribe(r => {
+    const projObs = this.auth.isEmployee
+      ? this.projectService.getForEmployee(this.auth.userId)
+      : this.projectService.getActive();
+      
+    projObs.subscribe(r => {
       if (r.success) {
         this.projects = r.data.slice(0, 5);
         this.stats.totalProjects = r.data.length;

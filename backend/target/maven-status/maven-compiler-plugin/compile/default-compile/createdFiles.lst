@@ -19,6 +19,7 @@ com/ita/config/DataSeeder.class
 com/ita/dto/TaskDTO.class
 com/ita/enums/UserRole.class
 com/ita/entity/TaskAssignment.class
+com/ita/exception/GlobalExceptionHandler.class
 com/ita/entity/Department.class
 com/ita/dto/JwtResponse.class
 com/ita/security/JwtUtil.class

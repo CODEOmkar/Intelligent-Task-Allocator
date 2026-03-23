@@ -18,6 +18,9 @@ public class ProjectController {
     @GetMapping("/active") public ResponseEntity<?> getActive() {
         return ResponseEntity.ok(ApiResponse.ok("Active projects", projectService.getActive())); }
 
+    @GetMapping("/employee/{employeeId}") public ResponseEntity<?> getForEmployee(@PathVariable Long employeeId) {
+        return ResponseEntity.ok(ApiResponse.ok("Employee projects", projectService.getForEmployee(employeeId))); }
+
     @GetMapping("/{id}") public ResponseEntity<?> getById(@PathVariable Long id) {
         return projectService.getById(id)
             .map(p -> ResponseEntity.ok(ApiResponse.ok("Project", p)))

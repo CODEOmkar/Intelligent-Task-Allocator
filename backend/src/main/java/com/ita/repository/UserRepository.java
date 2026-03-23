@@ -24,15 +24,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDepartmentAndRole(Department department, UserRole role);
     List<User> findByApprovalStatus(ApprovalStatus status);
 
-    @Query("SELECT u FROM User u WHERE u.role = 'EMPLOYEE' AND u.approvalStatus = 'APPROVED'")
+    @Query("SELECT u FROM User u WHERE u.role IN ('EMPLOYEE', 'TEAM_LEAD') AND u.approvalStatus = 'APPROVED'")
     List<User> findApprovedEmployees();
 
-    @Query("SELECT u FROM User u WHERE u.role = 'EMPLOYEE' AND u.department.id = :deptId AND u.approvalStatus = 'APPROVED'")
+    @Query("SELECT u FROM User u WHERE u.role IN ('EMPLOYEE', 'TEAM_LEAD') AND u.department.id = :deptId AND u.approvalStatus = 'APPROVED'")
     List<User> findApprovedEmployeesByDepartment(@Param("deptId") Long deptId);
 
-    @Query("SELECT u FROM User u WHERE u.role = 'EMPLOYEE' AND u.team.id = :teamId AND u.approvalStatus = 'APPROVED'")
+    @Query("SELECT u FROM User u WHERE u.role IN ('EMPLOYEE', 'TEAM_LEAD') AND u.team.id = :teamId AND u.approvalStatus = 'APPROVED'")
     List<User> findApprovedEmployeesByTeam(@Param("teamId") Long teamId);
 
-    @Query("SELECT DISTINCT u FROM User u JOIN u.skills s WHERE s.id IN :skillIds AND u.role = 'EMPLOYEE' AND u.approvalStatus = 'APPROVED'")
+    @Query("SELECT DISTINCT u FROM User u JOIN u.skills s WHERE s.id IN :skillIds AND u.role IN ('EMPLOYEE', 'TEAM_LEAD') AND u.approvalStatus = 'APPROVED'")
     List<User> findEmployeesBySkills(@Param("skillIds") List<Long> skillIds);
 }

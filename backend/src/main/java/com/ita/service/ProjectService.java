@@ -21,6 +21,9 @@ public class ProjectService {
     @Autowired private UserService userService;
 
     public Project create(ProjectDTO dto) {
+        if (dto.getName() != null && projectRepo.existsByNameIgnoreCase(dto.getName())) {
+            throw new RuntimeException("Project with name '" + dto.getName() + "' already exists");
+        }
         Project p = new Project();
         apply(p, dto);
         return projectRepo.save(p);
@@ -28,6 +31,9 @@ public class ProjectService {
 
     public Project update(Long id, ProjectDTO dto) {
         Project p = projectRepo.findById(id).orElseThrow(() -> new RuntimeException("Project not found"));
+        if (dto.getName() != null && !p.getName().equalsIgnoreCase(dto.getName()) && projectRepo.existsByNameIgnoreCase(dto.getName())) {
+            throw new RuntimeException("Project with name '" + dto.getName() + "' already exists");
+        }
         apply(p, dto);
         return projectRepo.save(p);
     }
@@ -47,6 +53,7 @@ public class ProjectService {
 
     public List<Project> getAll() { return projectRepo.findAllOrdered(); }
     public List<Project> getActive() { return projectRepo.findAllActive(); }
+    public List<Project> getForEmployee(Long employeeId) { return projectRepo.findProjectsByEmployeeId(employeeId); }
     public Optional<Project> getById(Long id) { return projectRepo.findById(id); }
 
     public void delete(Long id) {

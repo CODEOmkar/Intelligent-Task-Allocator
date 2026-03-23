@@ -90,8 +90,13 @@ public class UserService {
                 deptRepo.findById(Long.valueOf(data.get("departmentId").toString())).ifPresent(u::setDepartment);
             if (data.containsKey("teamId") && data.get("teamId") != null)
                 teamRepo.findById(Long.valueOf(data.get("teamId").toString())).ifPresent(u::setTeam);
-            if (data.containsKey("role") && data.get("role") != null)
-                u.setRole(UserRole.valueOf((String) data.get("role")));
+            if (data.containsKey("role") && data.get("role") != null) {
+                UserRole newRole = UserRole.valueOf((String) data.get("role"));
+                u.setRole(newRole);
+                if (newRole == UserRole.TEAM_LEAD) {
+                    u.setMaxCapacityHours(20);
+                }
+            }
         }
 
         if (data.containsKey("password") && data.get("password") != null) {
@@ -134,6 +139,7 @@ public class UserService {
             String status = pct < 70 ? "UNDERUTILIZED" : pct <= 100 ? "OPTIMAL" : "OVERLOADED";
             return new UtilizationDTO(u.getId(),
                 u.getFirstName() + " " + u.getLastName(), u.getEmail(),
+                u.getDepartment() != null ? u.getDepartment().getId() : null,
                 u.getDepartment() != null ? u.getDepartment().getName() : null,
                 u.getTeam() != null ? u.getTeam().getName() : null,
                 allocated, u.getMaxCapacityHours(), pct, status, activeTasks);

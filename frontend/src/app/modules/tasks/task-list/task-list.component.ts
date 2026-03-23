@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { TaskService, ProjectService, UserService, DepartmentService, TeamService, SkillService } from '../../../core/services/api.services';
+import { ToastService } from '../../../core/services/toast.service';
 import { Task, Project, User, Department, Team, Skill, TaskAssignment } from '../../../core/models';
 
 @Component({ selector: 'app-task-list', templateUrl: './task-list.component.html' })
@@ -19,6 +20,7 @@ export class TaskListComponent implements OnInit {
   editForm: any = {};
   saving = false;
   get today(): string { return new Date().toISOString().split('T')[0]; }
+  utilizationSummary = '';
 
   // Lists for dropdowns
   projects: Project[] = [];
@@ -41,7 +43,8 @@ export class TaskListComponent implements OnInit {
     private deptService: DepartmentService,
     private teamService: TeamService,
     private skillService: SkillService,
-    private userService: UserService
+    private userService: UserService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -120,7 +123,23 @@ export class TaskListComponent implements OnInit {
       parentTaskId: t.parentTask?.id || null
     };
     this.updateTeamsForDept();
+    this.fetchUtilizationSummary();
     this.showForm = true;
+  }
+
+  fetchUtilizationSummary(): void {
+    const obs = this.auth.isDeptHead ? this.userService.getDeptUtilization(this.auth.deptId) :
+                this.auth.isTeamLead ? this.userService.getTeamUtilization(this.auth.teamId) : null;
+    if (obs) {
+      obs.subscribe(r => {
+        if (r.success) {
+           const o = r.data.filter(u => u.utilizationStatus === 'OVERLOADED').length;
+           const op = r.data.filter(u => u.utilizationStatus === 'OPTIMAL').length;
+           const u = r.data.filter(u => u.utilizationStatus === 'UNDERUTILIZED').length;
+           this.utilizationSummary = `Available Capacity: ${u} Underutilized, ${op} Optimal, ${o} Overloaded`;
+        }
+      });
+    }
   }
 
   onDeptChange(): void {
@@ -146,7 +165,7 @@ export class TaskListComponent implements OnInit {
   save(): void {
     if (!this.editForm.title) return;
     if (this.auth.isPM && this.formMode !== 'subtask' && !this.editForm.departmentId) {
-      alert('Please select a department to assign this task to.');
+      this.toast.showError('Please select a department to assign this task to.');
       return;
     }
     this.saving = true;
@@ -163,16 +182,28 @@ export class TaskListComponent implements OnInit {
     const obs = this.formMode === 'edit'
       ? this.taskService.update(this.selected!.id, payload)
       : this.taskService.create(payload);
-    obs.subscribe(r => {
-      this.saving = false;
-      if (r.success) { this.showForm = false; this.load(); }
-    }, () => this.saving = false);
+    obs.subscribe({
+      next: r => {
+        this.saving = false;
+        if (r.success) { 
+          this.showForm = false; this.load(); 
+          this.toast.showSuccess(this.formMode === 'edit' ? 'Task updated successfully' : 'Task created successfully');
+        } else { this.toast.showError(r.message || 'Failed to save task'); }
+      },
+      error: err => { this.saving = false; this.toast.showError(err.error?.message || 'Error saving task'); }
+    });
   }
 
   confirmDelete(t: Task): void { this.selected = t; this.showDelConfirm = true; }
   doDelete(): void {
-    this.taskService.delete(this.selected!.id).subscribe(r => {
-      if (r.success) { this.showDelConfirm = false; this.load(); }
+    this.taskService.delete(this.selected!.id).subscribe({
+      next: r => {
+        if (r.success) { 
+          this.showDelConfirm = false; this.load(); 
+          this.toast.showSuccess('Task deleted successfully');
+        } else { this.toast.showError(r.message || 'Failed to delete task'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error deleting task')
     });
   }
 
@@ -187,22 +218,30 @@ export class TaskListComponent implements OnInit {
     // Team Lead → approved employees in their team
     this.userService.getAll().subscribe(r => {
       if (!r.success) return;
+      let users = r.data;
       if (this.auth.isDeptHead) {
-        this.assignableUsers = r.data.filter(u =>
+        users = users.filter(u =>
           u.approvalStatus === 'APPROVED' &&
           u.role === 'TEAM_LEAD' &&
           u.department?.id === this.auth.deptId);
       } else if (this.auth.isTeamLead) {
-        this.assignableUsers = r.data.filter(u =>
+        users = users.filter(u =>
           u.approvalStatus === 'APPROVED' &&
-          u.role === 'EMPLOYEE' &&
+          (u.role === 'EMPLOYEE' || u.id === this.auth.userId) &&
           u.team?.id === this.auth.teamId);
       } else if (this.auth.isPM) {
-        // PM can also assign if needed — show all approved employees + leads
-        this.assignableUsers = r.data.filter(u =>
+        users = users.filter(u =>
           u.approvalStatus === 'APPROVED' &&
           (u.role === 'EMPLOYEE' || u.role === 'TEAM_LEAD'));
       }
+      
+      const deptId = t.department?.id;
+      const estimatedHours = t.estimatedHours || 0;
+      this.assignableUsers = users.filter(u => {
+        const inDept = deptId ? u.department?.id === deptId : true;
+        const canTakeTask = ((u.allocatedHours || 0) + estimatedHours) <= (u.maxCapacityHours || 45);
+        return inDept && canTakeTask;
+      });
     });
   }
 
@@ -216,28 +255,34 @@ export class TaskListComponent implements OnInit {
     }).subscribe({
       next: r => {
         if (r.success) {
+          this.toast.showSuccess('Task assigned successfully');
           this.taskService.getAssignmentsForTask(this.assignTask!.id).subscribe(ar => {
             if (ar.success) this.taskAssignments = ar.data;
           });
-        }
+        } else { this.toast.showError(r.message || 'Failed to assign task'); }
       },
       error: err => {
-        alert('Assignment failed: ' + (err.error?.message || err.message || 'Unknown error'));
+        this.toast.showError('Assignment failed: ' + (err.error?.message || err.message || 'Unknown error'));
       }
     });
-}
+  }
 
   removeAssignment(a: TaskAssignment): void {
-    this.taskService.removeAssignment(a.id).subscribe(r => {
-      if (r.success) this.taskService.getAssignmentsForTask(this.assignTask!.id).subscribe(ar => {
-        if (ar.success) this.taskAssignments = ar.data;
-      });
+    this.taskService.removeAssignment(a.id).subscribe({
+      next: r => {
+        if (r.success) {
+          this.toast.showSuccess('Assignment removed successfully');
+          this.taskService.getAssignmentsForTask(this.assignTask!.id).subscribe(ar => {
+            if (ar.success) this.taskAssignments = ar.data;
+          });
+        } else { this.toast.showError(r.message || 'Failed to remove assignment'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error removing assignment')
     });
   }
 
   // Can current user create a sub-task under this task?
   canCreateSubTask(t: Task): boolean {
-    if (this.auth.isPM) return true;
     if (this.auth.isDeptHead) return t.department?.id === this.auth.deptId;
     if (this.auth.isTeamLead) return t.team?.id === this.auth.teamId;
     return false;

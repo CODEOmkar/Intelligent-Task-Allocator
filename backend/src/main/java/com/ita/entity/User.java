@@ -68,7 +68,7 @@ public class User {
     private Integer allocatedHours = 0;   // currently allocated hours per week
 
     @Column(nullable = false)
-    private Integer maxCapacityHours = 40; // default 40h/week
+    private Integer maxCapacityHours = 45; // default 45h/week
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -81,7 +81,7 @@ public class User {
         this.createdAt = LocalDateTime.now();
         if (this.approvalStatus == null) this.approvalStatus = ApprovalStatus.PENDING;
         if (this.allocatedHours == null) this.allocatedHours = 0;
-        if (this.maxCapacityHours == null) this.maxCapacityHours = 40;
+        if (this.maxCapacityHours == null) this.maxCapacityHours = 45;
     }
 
     @PreUpdate

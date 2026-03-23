@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProjectService, TaskService, UserService, DepartmentService, TeamService } from '../../../core/services/api.services';
+import { ToastService } from '../../../core/services/toast.service';
 import { Project, Task, TaskAssignment, Department, Team, UtilizationDTO } from '../../../core/models';
 
 @Component({ selector: 'app-project-detail', templateUrl: './project-detail.component.html' })
@@ -41,7 +42,8 @@ export class ProjectDetailComponent implements OnInit {
     private taskService: TaskService,
     private userService: UserService,
     private deptService: DepartmentService,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -112,7 +114,7 @@ export class ProjectDetailComponent implements OnInit {
     if (!this.taskForm.title) return;
     // PM must assign to a department
     if (this.auth.isPM && !this.taskForm.departmentId) {
-      alert('Please select a department to assign this task to.');
+      this.toast.showError('Please select a department to assign this task to.');
       return;
     }
     this.savingTask = true;
@@ -126,10 +128,16 @@ export class ProjectDetailComponent implements OnInit {
     const obs = this.editingTask
       ? this.taskService.update(this.editingTask.id, data)
       : this.taskService.create(data);
-    obs.subscribe(r => {
-      this.savingTask = false;
-      if (r.success) { this.showTaskForm = false; this.loadTasks(); }
-    }, () => this.savingTask = false);
+    obs.subscribe({
+      next: r => {
+        this.savingTask = false;
+        if (r.success) { 
+          this.showTaskForm = false; this.loadTasks(); 
+          this.toast.showSuccess(this.editingTask ? 'Task updated successfully' : 'Task created successfully');
+        } else { this.toast.showError(r.message || 'Failed to save task'); }
+      },
+      error: err => { this.savingTask = false; this.toast.showError(err.error?.message || 'Error saving task'); }
+    });
   }
 
   openAssign(task: Task): void {
@@ -140,7 +148,15 @@ export class ProjectDetailComponent implements OnInit {
       : this.auth.isDeptHead ? this.userService.getDeptUtilization(this.auth.deptId)
       : this.userService.getTeamUtilization(this.auth.teamId);
     utilObs.subscribe(r => {
-      if (r.success) this.availableEmployees = r.data;
+      if (r.success) {
+        const deptId = task.department?.id;
+        const estimatedHours = task.estimatedHours || 0;
+        this.availableEmployees = r.data.filter(u => {
+          const inDept = deptId ? u.departmentId === deptId : true;
+          const canTakeTask = (u.allocatedHours + estimatedHours) <= u.maxCapacityHours;
+          return inDept && canTakeTask;
+        });
+      }
     });
     this.showAssignForm = true;
   }
@@ -151,31 +167,49 @@ export class ProjectDetailComponent implements OnInit {
     this.taskService.assign({
       taskId: this.assigningTask!.id, employeeId: this.selectedEmployeeId,
       assignedById: this.auth.userId, notes: this.assignNotes
-    }).subscribe(r => {
-      this.savingAssign = false;
-      if (r.success) { this.showAssignForm = false; this.loadAssignments(); }
-    }, () => this.savingAssign = false);
+    }).subscribe({
+      next: r => {
+        this.savingAssign = false;
+        if (r.success) { 
+          this.showAssignForm = false; this.loadAssignments(); 
+          this.toast.showSuccess('Task assigned successfully');
+        } else { this.toast.showError(r.message || 'Failed to assign task'); }
+      },
+      error: err => { this.savingAssign = false; this.toast.showError(err.error?.message || 'Error assigning task'); }
+    });
   }
 
   confirmDeleteTask(task: Task): void { this.deletingTask = task; this.showDeleteConfirm = true; }
   deleteTask(): void {
     if (!this.deletingTask) return;
-    this.taskService.delete(this.deletingTask.id).subscribe(r => {
-      this.showDeleteConfirm = false;
-      if (r.success) this.loadTasks();
+    this.taskService.delete(this.deletingTask.id).subscribe({
+      next: r => {
+        this.showDeleteConfirm = false;
+        if (r.success) { this.loadTasks(); this.toast.showSuccess('Task deleted successfully'); }
+        else { this.toast.showError(r.message || 'Failed to delete task'); }
+      },
+      error: err => { this.showDeleteConfirm = false; this.toast.showError(err.error?.message || 'Error deleting task'); }
     });
   }
 
   removeAssignment(assignId: number): void {
-    this.taskService.removeAssignment(assignId).subscribe(r => {
-      if (r.success) this.loadAssignments();
+    this.taskService.removeAssignment(assignId).subscribe({
+      next: r => {
+        if (r.success) { this.loadAssignments(); this.toast.showSuccess('Assignment removed successfully'); }
+        else { this.toast.showError(r.message || 'Failed to remove assignment'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error removing assignment')
     });
   }
 
   deleteProject(): void {
     if (!this.project) return;
-    this.projectService.delete(this.project.id).subscribe(r => {
-      if (r.success) this.router.navigate(['/projects']);
+    this.projectService.delete(this.project.id).subscribe({
+      next: r => {
+        if (r.success) { this.toast.showSuccess('Project deleted successfully'); this.router.navigate(['/projects']); }
+        else { this.toast.showError(r.message || 'Failed to delete project'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error deleting project')
     });
   }
 

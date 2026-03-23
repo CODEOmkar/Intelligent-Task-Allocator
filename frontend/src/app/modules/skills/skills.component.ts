@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { SkillService, DepartmentService } from '../../core/services/api.services';
+import { ToastService } from '../../core/services/toast.service';
 import { Skill, Department } from '../../core/models';
 
 @Component({ selector: 'app-skills', templateUrl: './skills.component.html' })
@@ -20,7 +21,7 @@ export class SkillsComponent implements OnInit {
 
   categories: string[] = [];
 
-  constructor(public auth: AuthService, private skillService: SkillService, private deptService: DepartmentService) {}
+  constructor(public auth: AuthService, private skillService: SkillService, private deptService: DepartmentService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.load();
@@ -76,16 +77,28 @@ export class SkillsComponent implements OnInit {
     const obs = this.formMode === 'create'
       ? this.skillService.create(this.form)
       : this.skillService.update(this.selected!.id, this.form);
-    obs.subscribe(r => {
-      this.saving = false;
-      if (r.success) { this.showForm = false; this.load(); }
+    obs.subscribe({
+      next: r => {
+        this.saving = false;
+        if (r.success) { 
+          this.showForm = false; this.load(); 
+          this.toast.showSuccess(this.formMode === 'create' ? 'Skill created successfully' : 'Skill updated successfully');
+        } else { this.toast.showError(r.message || 'Failed to save skill'); }
+      },
+      error: err => { this.saving = false; this.toast.showError(err.error?.message || 'Error saving skill'); }
     });
   }
 
   confirmDelete(s: Skill): void { this.selected = s; this.showDelConfirm = true; }
   doDelete(): void {
-    this.skillService.delete(this.selected!.id).subscribe(r => {
-      if (r.success) { this.showDelConfirm = false; this.load(); }
+    this.skillService.delete(this.selected!.id).subscribe({
+      next: r => {
+        if (r.success) { 
+          this.showDelConfirm = false; this.load(); 
+          this.toast.showSuccess('Skill deleted successfully');
+        } else { this.toast.showError(r.message || 'Failed to delete skill'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error deleting skill')
     });
   }
 

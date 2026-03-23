@@ -41,4 +41,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
        "WHERE tm.id = :teamId " +
        "OR ptm.id = :teamId")
      List<Task> findByTeamScope(@Param("teamId") Long teamId); 
+
+     boolean existsByTitleIgnoreCaseAndProjectId(String title, Long projectId);
 }

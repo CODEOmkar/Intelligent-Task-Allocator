@@ -42,16 +42,52 @@
           </td>
           <td>
             <div style="display:flex;gap:6px">
-              <button class="btn btn-success btn-sm" (click)="approve(u)" [disabled]="processing === u.id">
-                {{ processing === u.id ? '...' : '✓ Approve' }}
-              </button>
-              <button class="btn btn-danger btn-sm" (click)="reject(u)" [disabled]="processing === u.id">
-                {{ processing === u.id ? '...' : '✕ Reject' }}
-              </button>
+              <button class="btn btn-success btn-sm" (click)="confirmApprove(u)">✓ Approve</button>
+              <button class="btn btn-danger btn-sm" (click)="confirmReject(u)">✕ Reject</button>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div *ngIf="showApproveConfirm" class="modal-overlay fade-in">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Confirm Approval</div>
+        <button class="close-btn" (click)="showApproveConfirm = false">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px; text-align:center;">
+        <div style="font-size:40px;margin-bottom:12px">✅</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px">Approve {{ selectedUser?.firstName }} {{ selectedUser?.lastName }}?</div>
+        <div style="font-size:13px;color:var(--text-muted)">This user will be granted access to the system.</div>
+        <div style="display:flex;gap:10px;margin-top:24px">
+          <button class="btn btn-secondary" style="flex:1;justify-content:center" (click)="showApproveConfirm = false">Cancel</button>
+          <button class="btn btn-success" style="flex:1;justify-content:center" (click)="approve()" [disabled]="processing === selectedUser?.id">
+            {{ processing === selectedUser?.id ? 'Approving...' : 'Yes, Approve' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="showRejectConfirm" class="modal-overlay fade-in">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Confirm Rejection</div>
+        <button class="close-btn" (click)="showRejectConfirm = false">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px; text-align:center;">
+        <div style="font-size:40px;margin-bottom:12px;color:var(--danger)">⚠️</div>
+        <div style="font-size:16px;font-weight:600;color:var(--danger);margin-bottom:8px">Reject {{ selectedUser?.firstName }} {{ selectedUser?.lastName }}?</div>
+        <div style="font-size:13px;color:var(--text-muted)">This will deny access to the system for this user.</div>
+        <div style="display:flex;gap:10px;margin-top:24px">
+          <button class="btn btn-secondary" style="flex:1;justify-content:center" (click)="showRejectConfirm = false">Cancel</button>
+          <button class="btn btn-danger" style="flex:1;justify-content:center" (click)="reject()" [disabled]="processing === selectedUser?.id">
+            {{ processing === selectedUser?.id ? 'Rejecting...' : 'Yes, Reject' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

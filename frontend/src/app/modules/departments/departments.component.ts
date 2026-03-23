@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { DepartmentService, UserService, TeamService } from '../../core/services/api.services';
+import { ToastService } from '../../core/services/toast.service';
 import { Department, User, Team } from '../../core/models';
 
 @Component({ selector: 'app-departments', templateUrl: './departments.component.html' })
@@ -18,7 +19,7 @@ export class DepartmentsComponent implements OnInit {
   form: any = { name: '', description: '', headId: null };
 
   constructor(public auth: AuthService, private deptService: DepartmentService,
-    private userService: UserService, private teamService: TeamService) {}
+    private userService: UserService, private teamService: TeamService, private toast: ToastService) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -76,16 +77,28 @@ export class DepartmentsComponent implements OnInit {
     const obs = this.formMode === 'create'
       ? this.deptService.create(this.form)
       : this.deptService.update(this.selected!.id, this.form);
-    obs.subscribe(r => {
-      this.saving = false;
-      if (r.success) { this.showForm = false; this.load(); }
+    obs.subscribe({
+      next: r => {
+        this.saving = false;
+        if (r.success) { 
+          this.showForm = false; this.load(); 
+          this.toast.showSuccess(this.formMode === 'create' ? 'Department created successfully' : 'Department updated successfully');
+        } else { this.toast.showError(r.message || 'Failed to save department'); }
+      },
+      error: err => { this.saving = false; this.toast.showError(err.error?.message || 'Error saving department'); }
     });
   }
 
   confirmDelete(d: Department): void { this.selected = d; this.showDelConfirm = true; }
   doDelete(): void {
-    this.deptService.delete(this.selected!.id).subscribe(r => {
-      if (r.success) { this.showDelConfirm = false; this.load(); }
+    this.deptService.delete(this.selected!.id).subscribe({
+      next: r => {
+        if (r.success) { 
+          this.showDelConfirm = false; this.load(); 
+          this.toast.showSuccess('Department deleted successfully');
+        } else { this.toast.showError(r.message || 'Failed to delete department'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error deleting department')
     });
   }
 }

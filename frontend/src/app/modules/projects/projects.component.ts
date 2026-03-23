@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { ProjectService } from '../../core/services/api.services';
+import { ToastService } from '../../core/services/toast.service';
 import { Project } from '../../core/models';
 
 @Component({ selector: 'app-projects', templateUrl: './projects.component.html' })
@@ -17,13 +18,14 @@ export class ProjectsComponent implements OnInit {
   formMode: 'create' | 'edit' = 'create';
   get today(): string { return new Date().toISOString().split('T')[0]; }
 
-  constructor(public auth: AuthService, private projectService: ProjectService) {}
+  constructor(public auth: AuthService, private projectService: ProjectService, private toast: ToastService) {}
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
-    this.projectService.getAll().subscribe(r => {
+    const obs = this.auth.isEmployee ? this.projectService.getForEmployee(this.auth.userId) : this.projectService.getAll();
+    obs.subscribe(r => {
       if (r.success) { this.projects = r.data; this.applyFilters(); }
       this.loading = false;
     });
@@ -54,14 +56,28 @@ export class ProjectsComponent implements OnInit {
     if (!this.editForm.name) return;
     const payload = { ...this.editForm, createdById: this.auth.userId };
     const obs = this.formMode === 'create' ? this.projectService.create(payload) : this.projectService.update(this.selected!.id, payload);
-    obs.subscribe(r => { if (r.success) { this.showForm = false; this.load(); } });
+    obs.subscribe({
+      next: r => {
+        if (r.success) { 
+          this.showForm = false; this.load(); 
+          this.toast.showSuccess(this.formMode === 'create' ? 'Project created successfully' : 'Project updated successfully');
+        } else { this.toast.showError(r.message || 'Failed to save project'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error saving project')
+    });
   }
 
   confirmDelete(p: Project): void { this.selected = p; this.showDelConfirm = true; }
 
   doDelete(): void {
-    this.projectService.delete(this.selected!.id).subscribe(r => {
-      if (r.success) { this.showDelConfirm = false; this.load(); }
+    this.projectService.delete(this.selected!.id).subscribe({
+      next: r => {
+        if (r.success) { 
+          this.showDelConfirm = false; this.load(); 
+          this.toast.showSuccess('Project deleted successfully');
+        } else { this.toast.showError(r.message || 'Failed to delete project'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error deleting project')
     });
   }
 

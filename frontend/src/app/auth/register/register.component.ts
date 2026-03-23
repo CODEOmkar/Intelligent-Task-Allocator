@@ -10,7 +10,7 @@ export class RegisterComponent implements OnInit {
   form: any = {
     email: '', password: '', confirmPassword: '', firstName: '', lastName: '',
     role: 'EMPLOYEE', departmentId: null, teamId: null,
-    skillIds: [], experienceYears: 0, maxCapacityHours: 40, bio: ''
+    skillIds: [], experienceYears: 0, maxCapacityHours: 45, bio: ''
   };
   departments: Department[] = [];
   teams: Team[] = [];

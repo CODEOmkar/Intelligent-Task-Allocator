@@ -31,6 +31,6 @@ public class RegisterRequest {
     private Long teamId;
     private List<Long> skillIds;
     private Integer experienceYears;
-    private Integer maxCapacityHours;
+    private Integer maxCapacityHours = 45;
     private String bio;
 }

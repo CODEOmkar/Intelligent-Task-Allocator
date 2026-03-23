@@ -29,7 +29,7 @@
               </span>
             </div>
           </div>
-          <div class="info-item"><div class="info-label">Max Capacity</div><div class="info-value">{{ user!.maxCapacityHours || 40 }}h/week</div></div>
+          <div class="info-item"><div class="info-label">Max Capacity</div><div class="info-value">{{ user!.maxCapacityHours || 45 }}h/week</div></div>
         </div>
         <div *ngIf="user!.bio" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
           <div class="info-label" style="margin-bottom:8px">Bio</div>
@@ -50,7 +50,7 @@
           <div style="font-size:48px;font-weight:800;" [ngClass]="getUtilClass()">{{ getUtilPct() | number:'1.0-0' }}%</div>
           <div style="font-size:14px;font-weight:600;margin-top:4px" [ngClass]="getUtilClass()">{{ getUtilLabel() }}</div>
           <div style="font-size:13px;color:var(--text-muted);margin-top:4px">
-            {{ user!.allocatedHours || 0 }}h allocated / {{ user!.maxCapacityHours || 40 }}h max
+            {{ user!.allocatedHours || 0 }}h allocated / {{ user!.maxCapacityHours || 45 }}h max
           </div>
         </div>
         <div class="util-bar" style="height:12px;border-radius:6px">
@@ -135,7 +135,10 @@
       </div>
       <div class="form-group">
         <label class="form-label">Max Capacity (h/week)</label>
-        <input type="number" class="form-control" [(ngModel)]="editForm.maxCapacityHours" min="1" max="80">
+        <input type="number" class="form-control" name="maxCapacityHours" [(ngModel)]="editForm.maxCapacityHours" min="45" max="80" #maxCap="ngModel">
+        <div *ngIf="maxCap.invalid && (maxCap.dirty || maxCap.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
+          <span *ngIf="maxCap.errors?.['min']">Minimum 45 hours required.</span>
+        </div>
       </div>
       <div class="form-group" *ngIf="auth.isPM || auth.isDeptHead">
         <label class="form-label">Department</label>

@@ -8,4 +8,5 @@ import java.util.List;
 public interface TeamRepository extends JpaRepository<Team, Long> {
     List<Team> findByDepartment(Department department);
     List<Team> findByDepartmentId(Long departmentId);
+    boolean existsByNameIgnoreCase(String name);
 }

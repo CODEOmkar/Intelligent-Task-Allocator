@@ -24,8 +24,12 @@ public class TeamService {
     public Optional<Team> getById(Long id) { return teamRepo.findById(id); }
 
     public Team create(Map<String, Object> data) {
+        String name = (String) data.get("name");
+        if (name != null && teamRepo.existsByNameIgnoreCase(name)) {
+            throw new RuntimeException("Team with name '" + name + "' already exists");
+        }
         Team t = new Team();
-        t.setName((String) data.get("name"));
+        t.setName(name);
         t.setDescription((String) data.get("description"));
         if (data.get("departmentId") != null)
             deptRepo.findById(Long.valueOf(data.get("departmentId").toString())).ifPresent(t::setDepartment);
@@ -37,7 +41,13 @@ public class TeamService {
 
     public Team update(Long id, Map<String, Object> data) {
         Team t = teamRepo.findById(id).orElseThrow();
-        if (data.get("name") != null) t.setName((String) data.get("name"));
+        if (data.get("name") != null) {
+            String newName = (String) data.get("name");
+            if (!t.getName().equalsIgnoreCase(newName) && teamRepo.existsByNameIgnoreCase(newName)) {
+                 throw new RuntimeException("Team with name '" + newName + "' already exists");
+            }
+            t.setName(newName);
+        }
         if (data.get("description") != null) t.setDescription((String) data.get("description"));
         if (data.get("departmentId") != null)
             deptRepo.findById(Long.valueOf(data.get("departmentId").toString())).ifPresent(t::setDepartment);

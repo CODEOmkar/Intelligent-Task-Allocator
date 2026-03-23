@@ -22,8 +22,12 @@ public class DepartmentService {
     public Optional<Department> getById(Long id) { return deptRepo.findById(id); }
 
     public Department create(Map<String, Object> data) {
+        String name = (String) data.get("name");
+        if (name != null && deptRepo.existsByNameIgnoreCase(name)) {
+            throw new RuntimeException("Department with name '" + name + "' already exists");
+        }
         Department d = new Department();
-        d.setName((String) data.get("name"));
+        d.setName(name);
         d.setDescription((String) data.get("description"));
         if (data.get("headId") != null)
             userRepo.findById(Long.valueOf(data.get("headId").toString())).ifPresent(d::setHead);
@@ -32,7 +36,13 @@ public class DepartmentService {
 
     public Department update(Long id, Map<String, Object> data) {
         Department d = deptRepo.findById(id).orElseThrow();
-        if (data.get("name") != null) d.setName((String) data.get("name"));
+        if (data.get("name") != null) {
+            String newName = (String) data.get("name");
+            if (!d.getName().equalsIgnoreCase(newName) && deptRepo.existsByNameIgnoreCase(newName)) {
+                 throw new RuntimeException("Department with name '" + newName + "' already exists");
+            }
+            d.setName(newName);
+        }
         if (data.get("description") != null) d.setDescription((String) data.get("description"));
         if (data.get("headId") != null)
             userRepo.findById(Long.valueOf(data.get("headId").toString())).ifPresent(d::setHead);

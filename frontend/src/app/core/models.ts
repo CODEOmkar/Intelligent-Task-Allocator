@@ -38,7 +38,7 @@ export interface TaskAssignment {
 
 export interface UtilizationDTO {
   userId: number; name: string; email: string;
-  departmentName?: string; teamName?: string;
+  departmentId?: number; departmentName?: string; teamName?: string;
   allocatedHours: number; maxCapacityHours: number;
   utilizationPercent: number; utilizationStatus: 'UNDERUTILIZED' | 'OPTIMAL' | 'OVERLOADED';
   activeTasks: number;

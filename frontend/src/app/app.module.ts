@@ -14,6 +14,7 @@ import { RegisterComponent } from './auth/register/register.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from './shared/components/topbar/topbar.component';
 import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
+import { ToastComponent } from './shared/components/toast/toast.component';
 import { DashboardComponent } from './modules/dashboard/dashboard.component';
 import { ProjectsComponent } from './modules/projects/projects.component';
 import { ProjectDetailComponent } from './modules/projects/project-detail/project-detail.component';
@@ -32,7 +33,7 @@ import { LandingComponent } from './core/components/landing/landing.component';
 @NgModule({
   declarations: [
     AppComponent, LoginComponent, RegisterComponent,
-    SidebarComponent, TopbarComponent, ConfirmDialogComponent,
+    SidebarComponent, TopbarComponent, ConfirmDialogComponent, ToastComponent,
     DashboardComponent, ProjectsComponent, ProjectDetailComponent,
     TaskListComponent, MyTasksComponent,
     EmployeeListComponent, EmployeeProfileComponent,

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { TeamService, DepartmentService, UserService } from '../../core/services/api.services';
+import { ToastService } from '../../core/services/toast.service';
 import { Team, Department, User } from '../../core/models';
 
 @Component({ selector: 'app-teams', templateUrl: './teams.component.html' })
@@ -18,7 +19,7 @@ export class TeamsComponent implements OnInit {
   form: any = { name: '', departmentId: null, teamLeadId: null, description: '' };
 
   constructor(public auth: AuthService, private teamService: TeamService,
-    private deptService: DepartmentService, private userService: UserService) {}
+    private deptService: DepartmentService, private userService: UserService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.load();
@@ -89,16 +90,28 @@ export class TeamsComponent implements OnInit {
     const obs = this.formMode === 'create'
       ? this.teamService.create(payload)
       : this.teamService.update(this.selected!.id, payload);
-    obs.subscribe(r => {
-      this.saving = false;
-      if (r.success) { this.showForm = false; this.load(); }
+    obs.subscribe({
+      next: r => {
+        this.saving = false;
+        if (r.success) { 
+          this.showForm = false; this.load(); 
+          this.toast.showSuccess(this.formMode === 'create' ? 'Team created successfully' : 'Team updated successfully');
+        } else { this.toast.showError(r.message || 'Failed to save team'); }
+      },
+      error: err => { this.saving = false; this.toast.showError(err.error?.message || 'Error saving team'); }
     });
   }
 
   confirmDelete(t: Team): void { this.selected = t; this.showDelConfirm = true; }
   doDelete(): void {
-    this.teamService.delete(this.selected!.id).subscribe(r => {
-      if (r.success) { this.showDelConfirm = false; this.load(); }
+    this.teamService.delete(this.selected!.id).subscribe({
+      next: r => {
+        if (r.success) { 
+          this.showDelConfirm = false; this.load(); 
+          this.toast.showSuccess('Team deleted successfully');
+        } else { this.toast.showError(r.message || 'Failed to delete team'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error deleting team')
     });
   }
 

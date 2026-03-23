@@ -8,6 +8,7 @@ public class UtilizationDTO {
     private Long userId;
     private String name;
     private String email;
+    private Long departmentId;
     private String departmentName;
     private String teamName;
     private Integer allocatedHours;
