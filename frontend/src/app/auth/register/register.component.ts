@@ -94,6 +94,10 @@ export class RegisterComponent implements OnInit {
       if (!emailRegex.test(this.form.email)) {
         this.error = 'Invalid email format'; return;
       }
+      const nameRegex = /^[a-zA-Z]+$/;
+      if (!nameRegex.test(this.form.firstName) || !nameRegex.test(this.form.lastName)) {
+        this.error = 'Name must contain only letters'; return;
+      }
       if (this.form.firstName.length < 2 || this.form.lastName.length < 2) {
         this.error = 'Name must be at least 2 characters'; return;
       }

@@ -53,8 +53,18 @@ public class UserService {
     public User updateProfile(Long id, Map<String, Object> data, boolean selfEdit) {
         User u = userRepo.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (data.containsKey("firstName")) u.setFirstName((String) data.get("firstName"));
-        if (data.containsKey("lastName")) u.setLastName((String) data.get("lastName"));
+        if (data.containsKey("firstName")) {
+            String firstName = (String) data.get("firstName");
+            if (firstName != null && !firstName.matches("^[a-zA-Z]+$"))
+                throw new RuntimeException("First name must contain only letters");
+            u.setFirstName(firstName);
+        }
+        if (data.containsKey("lastName")) {
+            String lastName = (String) data.get("lastName");
+            if (lastName != null && !lastName.matches("^[a-zA-Z]+$"))
+                throw new RuntimeException("Last name must contain only letters");
+            u.setLastName(lastName);
+        }
         if (data.containsKey("email")) {
             String newEmail = (String) data.get("email");
             if (newEmail != null && !newEmail.equals(u.getEmail())) {

@@ -18,10 +18,12 @@ public class RegisterRequest {
 
     @NotBlank(message = "First name is required")
     @Size(min = 2, message = "First name must be at least 2 characters")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Only letters are allowed")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
     @Size(min = 2, message = "Last name must be at least 2 characters")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Only letters are allowed")
     private String lastName;
 
     private String role;

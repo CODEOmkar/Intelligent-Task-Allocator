@@ -31,18 +31,20 @@
           <div class="two-col">
             <div class="form-group">
               <label class="form-label">First Name *</label>
-              <input class="form-control" name="firstName" [(ngModel)]="form.firstName" #firstName="ngModel" placeholder="John" required minlength="2">
+              <input class="form-control" name="firstName" [(ngModel)]="form.firstName" #firstName="ngModel" placeholder="John" required minlength="2" pattern="^[a-zA-Z]+$">
               <div *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
                 <span *ngIf="firstName.errors?.['required']">First name is required.</span>
                 <span *ngIf="firstName.errors?.['minlength']">Must be at least 2 characters.</span>
+                <span *ngIf="firstName.errors?.['pattern']">Only letters are allowed.</span>
               </div>
             </div>
             <div class="form-group">
               <label class="form-label">Last Name *</label>
-              <input class="form-control" name="lastName" [(ngModel)]="form.lastName" #lastName="ngModel" placeholder="Doe" required minlength="2">
+              <input class="form-control" name="lastName" [(ngModel)]="form.lastName" #lastName="ngModel" placeholder="Doe" required minlength="2" pattern="^[a-zA-Z]+$">
               <div *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)" style="color:var(--danger);font-size:12px;margin-top:4px">
                 <span *ngIf="lastName.errors?.['required']">Last name is required.</span>
                 <span *ngIf="lastName.errors?.['minlength']">Must be at least 2 characters.</span>
+                <span *ngIf="lastName.errors?.['pattern']">Only letters are allowed.</span>
               </div>
             </div>
           </div>

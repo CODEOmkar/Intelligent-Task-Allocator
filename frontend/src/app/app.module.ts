@@ -48,4 +48,4 @@ import { LandingComponent } from './core/components/landing/landing.component';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

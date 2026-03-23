@@ -99,6 +99,11 @@ export class EmployeeProfileComponent implements OnInit {
       this.saveError = 'Name and Email are required.';
       return;
     }
+    const nameRegex = /^[a-zA-Z]+$/;
+    if (!nameRegex.test(this.editForm.firstName) || !nameRegex.test(this.editForm.lastName)) {
+      this.saveError = 'Name must contain only letters.';
+      return;
+    }
     if (this.editForm.firstName.length < 2 || this.editForm.lastName.length < 2) {
       this.saveError = 'Name must be at least 2 characters.';
       return;
