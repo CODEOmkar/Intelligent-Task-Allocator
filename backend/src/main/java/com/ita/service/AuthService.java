@@ -62,7 +62,13 @@ public class AuthService {
         if (req.getSkillIds() != null && !req.getSkillIds().isEmpty())
             u.setSkills(new HashSet<>(skillRepo.findAllById(req.getSkillIds())));
         if (req.getExperienceYears() != null) u.setExperienceYears(req.getExperienceYears());
-        if (req.getMaxCapacityHours() != null) u.setMaxCapacityHours(req.getMaxCapacityHours());
+
+        if (role == UserRole.TEAM_LEAD) {
+            u.setMaxCapacityHours(35);
+        } else if (req.getMaxCapacityHours() != null) {
+            u.setMaxCapacityHours(req.getMaxCapacityHours());
+        }
+
         if (req.getBio() != null) u.setBio(req.getBio());
 
         User saved = userRepo.save(u);

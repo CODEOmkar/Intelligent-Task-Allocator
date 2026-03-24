@@ -1,5 +1,8 @@
 package com.ita.dto;
+
 import lombok.Data;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -30,7 +33,12 @@ public class RegisterRequest {
     private Long departmentId;
     private Long teamId;
     private List<Long> skillIds;
+    @Min(value = 0, message = "Experience cannot be negative")
+    @Max(value = 40, message = "Experience cannot exceed 40 years")
     private Integer experienceYears;
+
+    @Min(value = 35, message = "Weekly capacity must be at least 35 hours")
+    @Max(value = 60, message = "Weekly capacity cannot exceed 60 hours")
     private Integer maxCapacityHours = 45;
     private String bio;
 }

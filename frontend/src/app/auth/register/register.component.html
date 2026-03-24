@@ -109,7 +109,7 @@
           <div style="font-size:15px;font-weight:700;margin-bottom:16px">Role & Organization</div>
           <div class="form-group">
             <label class="form-label">Role *</label>
-            <select class="form-control" [(ngModel)]="form.role">
+            <select class="form-control" [(ngModel)]="form.role" (ngModelChange)="onRoleChange()">
               <option value="EMPLOYEE">Employee</option>
               <option value="TEAM_LEAD">Team Lead</option>
               <option value="DEPARTMENT_HEAD">Department Head</option>
@@ -137,7 +137,9 @@
             </div>
             <div class="form-group">
               <label class="form-label">Weekly Capacity (hrs)</label>
-              <input type="number" class="form-control" [(ngModel)]="form.maxCapacityHours" min="45" max="80">
+              <input type="number" class="form-control" [(ngModel)]="form.maxCapacityHours" 
+                     [min]="form.role === 'TEAM_LEAD' ? 30 : 45" 
+                     [max]="form.role === 'TEAM_LEAD' ? 35 : 60">
             </div>
           </div>
           <div class="form-group">

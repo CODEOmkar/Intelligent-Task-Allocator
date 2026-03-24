@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/api.services';
+import { ToastService } from '../../../core/services/toast.service';
 import { User } from '../../../core/models';
 
 @Component({ selector: 'app-employee-list', templateUrl: './employee-list.component.html' })
@@ -14,14 +15,21 @@ export class EmployeeListComponent implements OnInit {
   currentPage = 1;
   pageSize = 5;
 
-  constructor(public auth: AuthService, private userService: UserService) {}
+  showDelConfirm = false;
+  selectedUser: User | null = null;
+
+  constructor(public auth: AuthService, private userService: UserService, private toast: ToastService) {}
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
+    // PM sees everyone; DeptHead sees their dept; TeamLead + Employee see their team only
+    if (this.auth.isEmployee && !this.auth.teamId) {
+      this.users = []; this.filtered = []; this.loading = false; return;
+    }
     const obs = this.auth.isDeptHead ? this.userService.getByDept(this.auth.deptId)
-      : this.auth.isTeamLead ? this.userService.getByTeam(this.auth.teamId)
+      : (this.auth.isTeamLead || this.auth.isEmployee) ? this.userService.getByTeam(this.auth.teamId)
       : this.userService.getAll();
     obs.subscribe(r => {
       if (r.success) { this.users = r.data; this.applyFilters(); }
@@ -53,6 +61,22 @@ export class EmployeeListComponent implements OnInit {
 
   prevPage() {
     if (this.currentPage > 1) this.currentPage--;
+  }
+
+  confirmDelete(u: User): void { this.selectedUser = u; this.showDelConfirm = true; }
+  doDelete(): void {
+    if (!this.selectedUser) return;
+    this.userService.delete(this.selectedUser.id).subscribe({
+      next: r => {
+        if (r.success) {
+          this.showDelConfirm = false;
+          this.toast.showSuccess(`${this.selectedUser!.firstName} ${this.selectedUser!.lastName} removed successfully`);
+          this.selectedUser = null;
+          this.load();
+        } else { this.toast.showError(r.message || 'Failed to remove user'); }
+      },
+      error: err => this.toast.showError(err.error?.message || 'Error removing user')
+    });
   }
 
   getRoleBadge(r: string): string {

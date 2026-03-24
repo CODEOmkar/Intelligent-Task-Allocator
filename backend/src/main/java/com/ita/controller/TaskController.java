@@ -37,6 +37,11 @@ public class TaskController {
         return ResponseEntity.ok(ApiResponse.ok("My assignments", taskService.getMyAssignments(u.getId())));
     }
 
+    @GetMapping("/assignments/user/{userId}")
+    public ResponseEntity<?> getUserAssignments(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.ok("User assignments", taskService.getMyAssignments(userId)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         return taskService.getById(id)

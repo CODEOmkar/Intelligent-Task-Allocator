@@ -58,7 +58,7 @@ export class AuthService {
   get isApproved(): boolean { return this.auth?.approvalStatus === 'APPROVED'; }
 
   hasRole(...roles: string[]): boolean { return roles.includes(this.userRole); }
-  canManageTasks(): boolean { return this.hasRole('DEPARTMENT_HEAD', 'TEAM_LEAD'); }
+  canManageTasks(): boolean { return this.hasRole('PROJECT_MANAGER', 'DEPARTMENT_HEAD', 'TEAM_LEAD'); }
   canManageProjects(): boolean { return this.hasRole('PROJECT_MANAGER'); }
 
   // Update stored approval status after PM approval

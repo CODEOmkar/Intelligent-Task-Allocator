@@ -6,7 +6,7 @@
       </div>
       <div class="page-subtitle">{{ filtered.length }} tasks</div>
     </div>
-    <button *ngIf="auth.canManageTasks()" class="btn btn-primary" (click)="openCreate()">+ New Task</button>
+    <button *ngIf="auth.canManageTasks() && (auth.isPM || tasks.length > 0)" class="btn btn-primary" (click)="openCreate()">+ New Task</button>
   </div>
 
   <div class="filter-bar">
@@ -254,7 +254,7 @@
       <div>
         <div class="modal-title">Assign: {{ assignTask?.title }}</div>
         <div class="tl-parent-label">
-          <ng-container *ngIf="auth.isPM">All approved employees and team leads</ng-container>
+          <ng-container *ngIf="auth.isPM">Department heads</ng-container>
           <ng-container *ngIf="auth.isDeptHead">Team leads in your department</ng-container>
           <ng-container *ngIf="auth.isTeamLead">Approved employees in your team</ng-container>
         </div>
@@ -301,10 +301,21 @@
               <div class="assign-meta">{{ u.role }} · {{ u.team?.name || u.department?.name || 'No team' }}</div>
             </div>
           </div>
-          <div class="assign-right">
-            <span class="assign-hours">{{ u.allocatedHours || 0 }}h</span>
-            <button *ngIf="!isAssigned(u.id)" class="btn btn-success btn-sm" (click)="assignUser(u)">Assign</button>
-            <span *ngIf="isAssigned(u.id)" class="badge badge-green">Assigned</span>
+          <div class="assign-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
+            <div style="font-size:11px; color:var(--text-secondary)">
+              Capacity: {{ u.allocatedHours || 0 }}h / {{ u.maxCapacityHours || 45 }}h
+            </div>
+            <div style="width:100px; height:6px; background:var(--bg-alt); border-radius:3px; overflow:hidden; display:flex">
+              <div [style.width]="getUtilPercent(u) + '%'" [style.background]="getUtilColor(getUtilPercent(u))"></div>
+              <div *ngIf="!isAssigned(u.id)" [style.width]="(getProjectedUtilPercent(u) - getUtilPercent(u)) + '%'" style="background:var(--border)"></div>
+            </div>
+            <div style="font-size:10px" [style.color]="getUtilColor(getProjectedUtilPercent(u))" *ngIf="!isAssigned(u.id)">
+              Projected: {{ getProjectedUtilPercent(u) }}%
+            </div>
+            <div style="margin-top:2px">
+              <button *ngIf="!isAssigned(u.id)" class="btn btn-success btn-sm" (click)="assignUser(u)">Assign</button>
+              <span *ngIf="isAssigned(u.id)" class="badge badge-green">Assigned</span>
+            </div>
           </div>
         </div>
       </div>

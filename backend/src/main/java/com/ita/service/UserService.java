@@ -76,7 +76,9 @@ public class UserService {
         }
         if (data.containsKey("bio")) u.setBio((String) data.get("bio"));
         if (data.containsKey("experienceYears")) u.setExperienceYears((Integer) data.get("experienceYears"));
-        if (data.containsKey("maxCapacityHours")) u.setMaxCapacityHours((Integer) data.get("maxCapacityHours"));
+        if (data.containsKey("maxCapacityHours")) {
+            u.setMaxCapacityHours((Integer) data.get("maxCapacityHours"));
+        }
 
         if (data.containsKey("skillIds")) {
             List<Long> ids = ((List<?>) data.get("skillIds")).stream()
@@ -93,10 +95,12 @@ public class UserService {
             if (data.containsKey("role") && data.get("role") != null) {
                 UserRole newRole = UserRole.valueOf((String) data.get("role"));
                 u.setRole(newRole);
-                if (newRole == UserRole.TEAM_LEAD) {
-                    u.setMaxCapacityHours(20);
-                }
             }
+        }
+
+        // Lock team lead capacity
+        if (u.getRole() == UserRole.TEAM_LEAD) {
+            u.setMaxCapacityHours(35);
         }
 
         if (data.containsKey("password") && data.get("password") != null) {

@@ -232,7 +232,7 @@ export class TaskListComponent implements OnInit {
       } else if (this.auth.isPM) {
         users = users.filter(u =>
           u.approvalStatus === 'APPROVED' &&
-          (u.role === 'EMPLOYEE' || u.role === 'TEAM_LEAD'));
+          u.role === 'DEPARTMENT_HEAD');
       }
       
       const deptId = t.department?.id;
@@ -247,6 +247,25 @@ export class TaskListComponent implements OnInit {
 
   isAssigned(userId: number): boolean { return this.taskAssignments.some(a => a.employee?.id === userId); }
 
+  getUtilPercent(u: User): number {
+    const max = u.maxCapacityHours || 45;
+    const cur = u.allocatedHours || 0;
+    return Math.min(Math.round((cur / max) * 100), 150);
+  }
+
+  getProjectedUtilPercent(u: User): number {
+    const max = u.maxCapacityHours || 45;
+    const cur = u.allocatedHours || 0;
+    const est = this.assignTask?.estimatedHours || 0;
+    return Math.min(Math.round(((cur + est) / max) * 100), 150);
+  }
+
+  getUtilColor(pct: number): string {
+    if (pct <= 70) return 'var(--success)';
+    if (pct <= 100) return 'var(--warning)';
+    return 'var(--danger)';
+  }
+
   assignUser(u: User): void {
     if (this.isAssigned(u.id)) return;
     this.taskService.assign({
@@ -256,6 +275,7 @@ export class TaskListComponent implements OnInit {
       next: r => {
         if (r.success) {
           this.toast.showSuccess('Task assigned successfully');
+          u.allocatedHours = (u.allocatedHours || 0) + (this.assignTask?.estimatedHours || 0); // instant UI update
           this.taskService.getAssignmentsForTask(this.assignTask!.id).subscribe(ar => {
             if (ar.success) this.taskAssignments = ar.data;
           });
@@ -272,6 +292,10 @@ export class TaskListComponent implements OnInit {
       next: r => {
         if (r.success) {
           this.toast.showSuccess('Assignment removed successfully');
+          const u = this.assignableUsers.find(user => user.id === a.employee?.id);
+          if (u) {
+             u.allocatedHours = Math.max(0, (u.allocatedHours || 0) - (this.assignTask?.estimatedHours || 0)); // instant UI update
+          }
           this.taskService.getAssignmentsForTask(this.assignTask!.id).subscribe(ar => {
             if (ar.success) this.taskAssignments = ar.data;
           });

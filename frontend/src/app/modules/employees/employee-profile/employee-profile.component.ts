@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService, TaskService, DepartmentService, TeamService, SkillService } from '../../../core/services/api.services';
+import { ToastService } from '../../../core/services/toast.service';
 import { User, TaskAssignment, Department, Team, Skill } from '../../../core/models';
 
 @Component({ selector: 'app-employee-profile', templateUrl: './employee-profile.component.html' })
@@ -28,7 +29,8 @@ export class EmployeeProfileComponent implements OnInit {
     private taskService: TaskService,
     private deptService: DepartmentService,
     private teamService: TeamService,
-    private skillService: SkillService
+    private skillService: SkillService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -43,23 +45,22 @@ export class EmployeeProfileComponent implements OnInit {
       if (r.success) {
         this.user = r.data;
         this.resetEditForm();
-        if (this.user.role === 'EMPLOYEE') this.loadAssignments(id);
-        else this.loading = false;
+        this.loadAssignments(id);
       } else this.loading = false;
     });
   }
 
   loadAssignments(userId: number): void {
-    if (this.isOwnProfile) {
-      this.taskService.getMyAssignments().subscribe(r => {
+    this.taskService.getUserAssignments(userId).subscribe({
+      next: r => {
         if (r.success) this.assignments = r.data;
         this.loading = false;
-      });
-    } else {
-      // For managers viewing other employees, just load via user's assignment endpoint
-      this.assignments = [];
-      this.loading = false;
-    }
+      },
+      error: err => {
+        this.loading = false;
+        console.error('Failed to load assignments', err);
+      }
+    });
   }
 
   loadLookups(): void {
@@ -121,12 +122,13 @@ export class EmployeeProfileComponent implements OnInit {
         this.saving = false;
         if (r.success) { 
           this.user = r.data; 
-          this.editMode = false; 
+          this.editMode = false;
+          this.toast.showSuccess('Profile updated successfully');
           if (this.isOwnProfile) {
             this.auth.updateProfileData(this.user.firstName, this.user.lastName, this.user.email);
           }
         }
-        else { this.saveError = r.message || 'Failed to update'; }
+        else { this.saveError = r.message || 'Failed to update'; this.toast.showError(this.saveError); }
       },
       error: err => {
         this.saving = false;

@@ -33,7 +33,7 @@
     <div class="empty-title">No employees found</div>
   </div>
 
-  <div *ngIf="!loading" class="card" style="padding:0">
+  <div *ngIf="!loading && filtered.length > 0" class="card" style="padding:0">
     <div class="table-responsive">
       <table class="data-table">
         <thead>
@@ -72,7 +72,10 @@
             <span *ngIf="u.role !== 'EMPLOYEE'" style="color:var(--text-muted);font-size:13px">—</span>
           </td>
           <td><span class="badge" [ngClass]="getStatusBadge(u.approvalStatus)">{{ u.approvalStatus }}</span></td>
-          <td><span style="color:var(--text-muted);font-size:18px">›</span></td>
+          <td (click)="$event.stopPropagation()" style="white-space:nowrap">
+            <span style="color:var(--text-muted);font-size:18px">›</span>
+            <button *ngIf="auth.canManageProjects()" class="btn btn-icon btn-sm tl-danger" style="margin-left:6px" (click)="confirmDelete(u)" title="Remove user">✕</button>
+          </td>
           </tr>
         </tbody>
       </table>
@@ -84,3 +87,11 @@
     </div>
   </div>
 </div>
+
+<app-confirm
+  [show]="showDelConfirm"
+  title="Remove User"
+  [message]="'Remove ' + (selectedUser?.firstName || '') + ' ' + (selectedUser?.lastName || '') + ' from the system?'"
+  (confirm)="doDelete()"
+  (cancel)="showDelConfirm=false">
+</app-confirm>

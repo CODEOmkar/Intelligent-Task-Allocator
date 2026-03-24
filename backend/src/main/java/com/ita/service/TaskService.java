@@ -94,19 +94,12 @@ public class TaskService {
     public List<Task> getSubTasks(Long parentTaskId) { return taskRepo.findByParentTaskId(parentTaskId); }
     public Optional<Task> getById(Long id) { return taskRepo.findById(id); }
 
-    // Role-scoped task list — re-fetch user inside transaction to avoid lazy-loading issue
+    // Role-scoped task list — only PM sees all; all others see only tasks assigned to them (or derived sub-tasks)
     public List<Task> getTasksForUser(User inputUser) {
-        // Re-fetch user within this transaction to ensure department/team associations are loaded
         User user = userRepo.findById(inputUser.getId()).orElse(inputUser);
         return switch (user.getRole()) {
             case PROJECT_MANAGER -> taskRepo.findAll();
-            case DEPARTMENT_HEAD -> user.getDepartment() != null
-                ? taskRepo.findByDeptScope(user.getDepartment().getId())
-                : taskRepo.findAll();
-            case TEAM_LEAD -> user.getTeam() != null
-                ? taskRepo.findByTeamScope(user.getTeam().getId())
-                : List.of();
-            case EMPLOYEE -> taskRepo.findActiveTasksByEmployee(user.getId());
+            default -> taskRepo.findAssignedAndDerivedTasks(user.getId());
         };
     }
 
@@ -118,9 +111,9 @@ public class TaskService {
         if (emp.getApprovalStatus() != com.ita.enums.ApprovalStatus.APPROVED)
             throw new RuntimeException("Employee not approved. Approval required before assignment.");
 
-        // Allow EMPLOYEE and TEAM_LEAD to be assigned tasks (sub-task delegation)
-        if (emp.getRole() != com.ita.enums.UserRole.EMPLOYEE && emp.getRole() != com.ita.enums.UserRole.TEAM_LEAD)
-            throw new RuntimeException("Only employees and team leads can be assigned tasks.");
+        // Allow EMPLOYEE, TEAM_LEAD, and DEPARTMENT_HEAD to be assigned tasks
+        if (emp.getRole() != com.ita.enums.UserRole.EMPLOYEE && emp.getRole() != com.ita.enums.UserRole.TEAM_LEAD && emp.getRole() != com.ita.enums.UserRole.DEPARTMENT_HEAD)
+            throw new RuntimeException("Only employees, team leads, and department heads can be assigned tasks.");
 
         if (assignRepo.existsActive(dto.getTaskId(), dto.getEmployeeId()))
             throw new RuntimeException("Employee is already assigned to this task");

@@ -74,9 +74,9 @@
     </div>
 
     <!-- Two-col: Projects + Tasks -->
-    <div class="two-col" style="gap:20px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;min-width:0">
       <!-- Recent Projects -->
-      <div class="card" style="margin-bottom:0">
+      <div class="card" style="margin-bottom:0;min-width:0;overflow:hidden">
         <div class="card-header">
           <div class="card-title">Recent Projects</div>
           <a routerLink="/projects" class="btn btn-outline btn-sm">View All →</a>
@@ -98,10 +98,9 @@
       </div>
 
       <!-- Tasks (sliced to 5, but "View All" goes to full list) -->
-      <div class="card" style="margin-bottom:0">
+      <div class="card" style="margin-bottom:0;min-width:0;overflow:hidden">
         <div class="card-header">
           <div class="card-title">{{ auth.isEmployee ? 'My Tasks' : 'Recent Tasks' }}</div>
-          <!-- KEY FIX: employees → /my-tasks, managers/leads → /tasks -->
           <a [routerLink]="auth.isEmployee ? '/my-tasks' : '/tasks'" class="btn btn-outline btn-sm">View All ({{ tasks.length }}) →</a>
         </div>
         <div *ngIf="tasks.length === 0" class="empty-state" style="padding:32px">
@@ -111,10 +110,10 @@
           <tbody>
             <tr *ngFor="let t of tasks | slice:0:5">
               <td>
-                <div style="font-weight:600;margin-bottom:2px">{{ t.title }}</div>
+                <div style="font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px">{{ t.title }}</div>
                 <div style="font-size:12px;color:var(--text-muted)">{{ t.project?.name || '—' }}</div>
               </td>
-              <td style="text-align:right"><span class="badge" [ngClass]="getTaskBadge(t.status)">{{ t.status | titlecase }}</span></td>
+              <td style="text-align:right;white-space:nowrap"><span class="badge" [ngClass]="getTaskBadge(t.status)">{{ t.status | titlecase }}</span></td>
             </tr>
           </tbody>
         </table>

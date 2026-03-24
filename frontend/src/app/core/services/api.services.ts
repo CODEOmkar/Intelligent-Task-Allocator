@@ -39,6 +39,7 @@ export class TaskService {
   constructor(private http: HttpClient) {}
   getForMe(): Observable<ApiResponse<Task[]>> { return this.http.get<ApiResponse<Task[]>>('/api/tasks/for-me'); }
   getMyAssignments(): Observable<ApiResponse<TaskAssignment[]>> { return this.http.get<ApiResponse<TaskAssignment[]>>('/api/tasks/my-assignments'); }
+  getUserAssignments(userId: number): Observable<ApiResponse<TaskAssignment[]>> { return this.http.get<ApiResponse<TaskAssignment[]>>(`/api/tasks/assignments/user/${userId}`); }
   getAll(): Observable<ApiResponse<Task[]>> { return this.http.get<ApiResponse<Task[]>>('/api/tasks'); }
   getById(id: number): Observable<ApiResponse<Task>> { return this.http.get<ApiResponse<Task>>(`/api/tasks/${id}`); }
   getByProject(pid: number): Observable<ApiResponse<Task[]>> { return this.http.get<ApiResponse<Task[]>>(`/api/tasks/project/${pid}`); }

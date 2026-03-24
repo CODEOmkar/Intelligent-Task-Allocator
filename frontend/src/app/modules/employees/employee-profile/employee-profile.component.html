@@ -44,7 +44,7 @@
       </div>
 
       <!-- Right: Utilization -->
-      <div *ngIf="user!.role === 'EMPLOYEE'" class="card">
+      <div *ngIf="user!.role !== 'PROJECT_MANAGER'" class="card">
         <div class="card-title" style="margin-bottom:16px">Utilization</div>
         <div style="text-align:center;margin-bottom:24px">
           <div style="font-size:48px;font-weight:800;" [ngClass]="getUtilClass()">{{ getUtilPct() | number:'1.0-0' }}%</div>
@@ -70,7 +70,7 @@
     </div>
 
     <!-- Assignments (own profile or managers) -->
-    <div *ngIf="user!.role === 'EMPLOYEE' && (isOwnProfile || auth.canManageTasks())" class="card">
+    <div *ngIf="isOwnProfile || auth.canManageTasks()" class="card">
       <div class="card-title" style="margin-bottom:16px">
         {{ isOwnProfile ? 'My Assignments' : 'Task Assignments' }}
         <a *ngIf="isOwnProfile" routerLink="/my-tasks" class="btn btn-primary btn-sm" style="margin-left:12px">Update Progress →</a>

@@ -24,7 +24,8 @@ export class ProjectsComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    const obs = this.auth.isEmployee ? this.projectService.getForEmployee(this.auth.userId) : this.projectService.getAll();
+    // PM sees all projects; every other role only sees projects they are assigned to
+    const obs = this.auth.isPM ? this.projectService.getAll() : this.projectService.getForEmployee(this.auth.userId);
     obs.subscribe(r => {
       if (r.success) { this.projects = r.data; this.applyFilters(); }
       this.loading = false;

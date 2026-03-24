@@ -111,6 +111,22 @@ export class RegisterComponent implements OnInit {
       if (this.form.password !== this.form.confirmPassword) {
         this.error = 'Passwords do not match'; return;
       }
+    } else if (this.step === 2) {
+      const exp = this.form.experienceYears;
+      const hrs = this.form.maxCapacityHours;
+      
+      if (exp === null || exp === undefined || exp < 0 || exp > 40) {
+        this.error = 'Experience must be between 0 and 40 years'; return;
+      }
+      if (this.form.role === 'TEAM_LEAD') {
+        if (hrs === null || hrs === undefined || hrs < 30 || hrs > 35) {
+          this.error = 'Team Lead capacity must be between 30 and 35 hours'; return;
+        }
+      } else {
+        if (hrs === null || hrs === undefined || hrs < 45 || hrs > 60) {
+          this.error = 'Weekly capacity must be between 45 and 60 hours'; return;
+        }
+      }
     }
     this.error = '';
     this.step++;
@@ -141,5 +157,17 @@ export class RegisterComponent implements OnInit {
 
   getSkillsByCategory(cat: string): Skill[] {
     return this.skills.filter(s => (s.category || 'Other') === cat);
+  }
+
+  onRoleChange(): void {
+    if (this.form.role === 'TEAM_LEAD') {
+      if (this.form.maxCapacityHours > 35 || this.form.maxCapacityHours < 30) {
+        this.form.maxCapacityHours = 35;
+      }
+    } else {
+      if (this.form.maxCapacityHours < 45 || this.form.maxCapacityHours > 60) {
+        this.form.maxCapacityHours = 45;
+      }
+    }
   }
 }

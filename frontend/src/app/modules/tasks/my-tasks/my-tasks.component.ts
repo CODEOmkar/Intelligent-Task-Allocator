@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { TaskService } from '../../../core/services/api.services';
+import { ToastService } from '../../../core/services/toast.service';
 import { TaskAssignment } from '../../../core/models';
 
 @Component({ selector: 'app-my-tasks', templateUrl: './my-tasks.component.html' })
@@ -11,7 +12,7 @@ export class MyTasksComponent implements OnInit {
   progressMap: Record<number, number> = {};
   filterStatus = '';
 
-  constructor(public auth: AuthService, private taskService: TaskService) {}
+  constructor(public auth: AuthService, private taskService: TaskService, private toast: ToastService) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -41,12 +42,18 @@ export class MyTasksComponent implements OnInit {
       next: r => {
         this.saving = null;
         if (r.success) {
+          this.toast.showSuccess('Progress updated successfully to ' + pct + '%');
           const idx = this.assignments.findIndex(x => x.id === a.id);
           if (idx !== -1) { this.assignments[idx] = r.data; }
           if (pct >= 100) this.load();
+        } else {
+          this.toast.showError(r.message || 'Failed to update progress');
         }
       },
-      error: () => { this.saving = null; }
+      error: (err) => { 
+        this.saving = null; 
+        this.toast.showError(err.error?.message || 'Error updating progress');
+      }
     });
   }
 
