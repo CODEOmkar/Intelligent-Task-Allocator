@@ -46,6 +46,11 @@ public class Task {
     @JsonIgnoreProperties({"hibernateLazyInitializer","handler","teamLead","department"})
     private Team team;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer","handler","password","skills","department","team"})
+    private User createdBy;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskStatus status = TaskStatus.PENDING;

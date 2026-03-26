@@ -76,7 +76,7 @@
             <span class="avatar-xs">{{ a.employee?.firstName?.[0] }}{{ a.employee?.lastName?.[0] }}</span>
             <span>{{ a.employee?.firstName }} {{ a.employee?.lastName }}</span>
             <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)">{{ a.completionPercentage }}%</span>
-            <button *ngIf="auth.canManageTasks()" class="chip-remove" (click)="removeAssignment(a.id)">×</button>
+            <button *ngIf="canRemoveAssignment(a)" class="chip-remove" (click)="removeAssignment(a.id)">×</button>
           </div>
         </div>
       </div>
@@ -148,7 +148,9 @@
         </div>
         <div class="form-group">
           <label class="form-label">Estimated Hours</label>
-          <input type="number" class="form-control" [(ngModel)]="taskForm.estimatedHours" min="1">
+          <input type="number" class="form-control" [(ngModel)]="taskForm.estimatedHours" min="1"
+            (keydown)="$event.key === '-' || $event.key === 'e' ? $event.preventDefault() : null"
+            (paste)="$event.preventDefault()">
         </div>
         <div class="form-group">
           <label class="form-label">Due Date</label>

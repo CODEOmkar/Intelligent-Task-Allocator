@@ -29,5 +29,13 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
            "   OR (pta.employee.id = :empId AND pta.status IN ('ASSIGNED','IN_PROGRESS'))")
     List<Task> findAssignedAndDerivedTasks(@Param("empId") Long empId); 
 
-     boolean existsByTitleIgnoreCaseAndProjectId(String title, Long projectId);
+      boolean existsByTitleIgnoreCaseAndProjectId(String title, Long projectId);
+    
+    @Query("SELECT DISTINCT t FROM Task t " +
+           "LEFT JOIN TaskAssignment ta ON ta.task = t " +
+           "LEFT JOIN TaskAssignment pta ON pta.task = t.parentTask " +
+           "WHERE t.createdBy.id = :userId " +
+           "   OR (ta.employee.id = :userId AND ta.status IN ('ASSIGNED','IN_PROGRESS')) " +
+           "   OR (pta.employee.id = :userId AND pta.status IN ('ASSIGNED','IN_PROGRESS'))")
+    List<Task> findVisibleTasks(@Param("userId") Long userId);
 }

@@ -73,7 +73,10 @@
           </td>
           <td><span class="badge" [ngClass]="getStatusBadge(u.approvalStatus)">{{ u.approvalStatus }}</span></td>
           <td (click)="$event.stopPropagation()" style="white-space:nowrap">
-            <span style="color:var(--text-muted);font-size:18px">›</span>
+            <span style="color:var(--text-muted);font-size:18px;margin-right:8px">›</span>
+            <button *ngIf="(auth.isDeptHead || auth.isPM) && (u.role === 'EMPLOYEE' || u.role === 'TEAM_LEAD')" class="btn btn-icon btn-sm btn-accent-soft" (click)="openTeamModal(u)" title="Assign Team">
+              <span style="font-size:16px">👥</span>
+            </button>
             <button *ngIf="auth.canManageProjects()" class="btn btn-icon btn-sm tl-danger" style="margin-left:6px" (click)="confirmDelete(u)" title="Remove user">✕</button>
           </td>
           </tr>
@@ -83,7 +86,37 @@
     
     <div *ngIf="filtered.length > pageSize" style="padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid var(--border);gap:8px">
       <button class="btn btn-secondary btn-sm" (click)="prevPage()" [disabled]="currentPage === 1">← Back</button>
+      <div style="font-size:12px;color:var(--text-muted);margin:0 10px">
+        Page {{ currentPage }} of {{ totalPages }}
+      </div>
       <button class="btn btn-secondary btn-sm" (click)="nextPage()" [disabled]="currentPage * pageSize >= filtered.length">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Team Modal -->
+<div class="modal-overlay" *ngIf="showTeamModal" (click)="showTeamModal = false">
+  <div class="modal modal-sm fade-in" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Assign Team</div>
+      <button class="modal-close" (click)="showTeamModal = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:20px;color:var(--text-secondary);font-size:13px">
+        Select a team for <strong>{{ selectedUser?.firstName }} {{ selectedUser?.lastName }}</strong>.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Team</label>
+        <select class="form-control" [(ngModel)]="targetTeamId">
+          <option [value]="0">No Team (Unassigned)</option>
+          <option *ngFor="let t of teams" [value]="t.id">{{ t.name }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="showTeamModal = false">Cancel</button>
+      <button class="btn btn-primary" (click)="doAssignTeam()">Save Changes</button>
     </div>
   </div>
 </div>

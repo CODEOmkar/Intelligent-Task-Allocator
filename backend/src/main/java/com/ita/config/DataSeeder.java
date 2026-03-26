@@ -97,7 +97,7 @@ public class DataSeeder implements CommandLineRunner {
         qaTeam.setTeamLead(qaLead); teamRepo.save(qaTeam);
 
         // ===== EMPLOYEES =====
-        User emp1 = user("john.doe@mail.com", "employee123",
+        User emp1 = user("d@mail.com", "Aa123456#",
             "John", "Doe", UserRole.EMPLOYEE, devDept, backendTeam,
             Set.of(java, spring, sql), 3, ApprovalStatus.APPROVED);
         User emp2 = user("jane.smith@mail.com", "employee123",
@@ -241,7 +241,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("║   teamleadqa@mail.com / teamleadqa123                     ║");
         System.out.println("╠═══════════════════════════════════════════════════════════╣");
         System.out.println("║ EMPLOYEES (all approved):                                 ║");
-        System.out.println("║   john.doe@mail.com / employee123                         ║");
+        System.out.println("║   d@mail.com / Aa123456#                                  ║");
         System.out.println("║   jane.smith@mail.com / employee123                       ║");
         System.out.println("║   mike.johnson@mail.com / employee123                     ║");
         System.out.println("║   sara.brown@mail.com / employee123                       ║");

@@ -112,6 +112,9 @@ export class RegisterComponent implements OnInit {
         this.error = 'Passwords do not match'; return;
       }
     } else if (this.step === 2) {
+      if (this.form.role !== 'PROJECT_MANAGER' && !this.form.departmentId) {
+        this.error = 'Department is required for your role'; return;
+      }
       const exp = this.form.experienceYears;
       const hrs = this.form.maxCapacityHours;
       

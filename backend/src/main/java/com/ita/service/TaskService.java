@@ -26,7 +26,7 @@ public class TaskService {
     @Autowired private SkillRepository skillRepo;
     @Autowired private UserService userService;
 
-    public Task create(TaskDTO dto) {
+    public Task create(TaskDTO dto, User creator) {
         if (dto.getTitle() != null) {
             Long projId = dto.getProjectId();
             if (projId == null && dto.getParentTaskId() != null) {
@@ -38,6 +38,7 @@ public class TaskService {
             }
         }
         Task t = new Task();
+        t.setCreatedBy(creator);
         applyDTO(t, dto);
         return taskRepo.save(t);
     }
@@ -94,13 +95,15 @@ public class TaskService {
     public List<Task> getSubTasks(Long parentTaskId) { return taskRepo.findByParentTaskId(parentTaskId); }
     public Optional<Task> getById(Long id) { return taskRepo.findById(id); }
 
-    // Role-scoped task list — only PM sees all; all others see only tasks assigned to them (or derived sub-tasks)
+    // Role-scoped task list:
+    // PM → all tasks
+    // Others → ONLY tasks they created OR are assigned to (direct or parent-derived)
     public List<Task> getTasksForUser(User inputUser) {
         User user = userRepo.findById(inputUser.getId()).orElse(inputUser);
-        return switch (user.getRole()) {
-            case PROJECT_MANAGER -> taskRepo.findAll();
-            default -> taskRepo.findAssignedAndDerivedTasks(user.getId());
-        };
+        if (user.getRole() == com.ita.enums.UserRole.PROJECT_MANAGER) {
+            return taskRepo.findAll();
+        }
+        return taskRepo.findVisibleTasks(user.getId());
     }
 
     // Assign a task to employee - recalculates utilization

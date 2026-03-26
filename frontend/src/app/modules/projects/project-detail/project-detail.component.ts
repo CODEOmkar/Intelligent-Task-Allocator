@@ -120,6 +120,7 @@ export class ProjectDetailComponent implements OnInit {
     this.savingTask = true;
     const data: any = {
       ...this.taskForm,
+      estimatedHours: Math.max(1, this.taskForm.estimatedHours || 1),
       projectId: this.project!.id,
       departmentId: this.taskForm.departmentId ? +this.taskForm.departmentId : null,
       // PM does not set team — dept head does that via sub-tasks
@@ -200,6 +201,18 @@ export class ProjectDetailComponent implements OnInit {
       },
       error: err => this.toast.showError(err.error?.message || 'Error removing assignment')
     });
+  }
+
+  canRemoveAssignment(a: TaskAssignment): boolean {
+    if (a.assignedBy?.id === this.auth.userId) return true;
+    const empRole = a.employee?.role;
+    const empId = a.employee?.id;
+    if (this.auth.isPM) return empRole === 'DEPARTMENT_HEAD';
+    if (this.auth.isDeptHead)
+      return empRole === 'TEAM_LEAD' && a.employee?.department?.id === this.auth.deptId;
+    if (this.auth.isTeamLead)
+      return (empRole === 'EMPLOYEE' || empId === this.auth.userId) && a.employee?.team?.id === this.auth.teamId;
+    return false;
   }
 
   deleteProject(): void {

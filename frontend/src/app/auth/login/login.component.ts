@@ -14,7 +14,7 @@ export class LoginComponent {
     { role: 'Project Manager', email: 'projectmanager@mail.com', pass: 'projectmanager123', color: '#a78bfa' },
     { role: 'Dev Dept Head', email: 'development@mail.com', pass: 'development123', color: '#60a5fa' },
     { role: 'Backend Lead', email: 'teamleadbackend@mail.com', pass: 'teamleadbackend123', color: '#fbbf24' },
-    { role: 'Employee', email: 'john.doe@mail.com', pass: 'employee123', color: '#94a3b8' },
+    { role: 'Employee', email: 'd@mail.com', pass: 'Aa123456#', color: '#94a3b8' },
   ];
 
   constructor(private auth: AuthService, private router: Router) {

@@ -76,7 +76,11 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody TaskDTO dto) {
-        try { return ResponseEntity.ok(ApiResponse.ok("Task created", taskService.create(dto))); }
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            User u = userRepo.findByEmail(email).orElseThrow();
+            return ResponseEntity.ok(ApiResponse.ok("Task created", taskService.create(dto, u)));
+        }
         catch (Exception e) { return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage())); }
     }
 

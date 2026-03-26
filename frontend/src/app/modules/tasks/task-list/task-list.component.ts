@@ -74,7 +74,10 @@ export class TaskListComponent implements OnInit {
   }
 
   // Parent tasks only (for display grouping)
-  get parentTasks(): Task[] { return this.filtered.filter(t => !t.parentTask); }
+  get parentTasks(): Task[] {
+    // Include tasks that have no parent, OR tasks whose parent is not in the current visible list (orphans)
+    return this.filtered.filter(t => !t.parentTask || !this.filtered.some(p => p.id === t.parentTask?.id));
+  }
   getSubTasks(parentId: number): Task[] { return this.filtered.filter(t => t.parentTask?.id === parentId); }
 
   openCreate(): void {
@@ -171,6 +174,7 @@ export class TaskListComponent implements OnInit {
     this.saving = true;
     const payload = {
       ...this.editForm,
+      estimatedHours: Math.max(1, this.editForm.estimatedHours || 1),
       projectId: this.editForm.projectId ? +this.editForm.projectId : null,
       departmentId: this.editForm.departmentId ? +this.editForm.departmentId : null,
       // PM never sets team on top-level tasks
@@ -308,7 +312,7 @@ export class TaskListComponent implements OnInit {
   // Can current user create a sub-task under this task?
   canCreateSubTask(t: Task): boolean {
     if (this.auth.isDeptHead) return t.department?.id === this.auth.deptId;
-    if (this.auth.isTeamLead) return t.team?.id === this.auth.teamId;
+    if (this.auth.isTeamLead) return true; // They can break down any task they are assigned to
     return false;
   }
 
@@ -316,6 +320,18 @@ export class TaskListComponent implements OnInit {
   hasParentInView(t: Task): boolean {
     if (!t.parentTask) return false;
     return this.parentTasks.some(p => p.id === t.parentTask?.id);
+  }
+
+  canRemoveAssignment(a: TaskAssignment): boolean {
+    if (a.assignedBy?.id === this.auth.userId) return true; // Always allow removing if you are the assigner
+    const empRole = a.employee?.role;
+    const empId = a.employee?.id;
+    if (this.auth.isPM) return empRole === 'DEPARTMENT_HEAD';
+    if (this.auth.isDeptHead)
+      return empRole === 'TEAM_LEAD' && a.employee?.department?.id === this.auth.deptId;
+    if (this.auth.isTeamLead)
+      return (empRole === 'EMPLOYEE' || empId === this.auth.userId) && a.employee?.team?.id === this.auth.teamId;
+    return false;
   }
 
   getTaskBadge(s: string): string {

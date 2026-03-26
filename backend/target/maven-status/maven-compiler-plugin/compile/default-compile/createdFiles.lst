@@ -30,7 +30,6 @@ com/ita/dto/AssignmentDTO.class
 com/ita/controller/AuthController.class
 com/ita/repository/TeamRepository.class
 com/ita/dto/RegisterRequest.class
-com/ita/service/TaskService$1.class
 com/ita/controller/SkillController.class
 com/ita/service/DepartmentService.class
 com/ita/entity/Skill.class
