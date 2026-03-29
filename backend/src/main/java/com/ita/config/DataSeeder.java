@@ -81,8 +81,8 @@ public class DataSeeder implements CommandLineRunner {
         Team infraTeam = team("Infrastructure Team", devOpsDept, null, "CI/CD and cloud infra");
 
         // ===== TEAM LEADS =====
-        User backendLead = user("teamleadbackend@mail.com", "teamleadbackend123",
-            "Vikram", "Mehta", UserRole.TEAM_LEAD, devDept, backendTeam,
+        User backendLead = user("sahil@mail.com", "Sahil@123",
+            "Sahil", "Mehta", UserRole.TEAM_LEAD, devDept, backendTeam,
             Set.of(java, spring), 6, ApprovalStatus.APPROVED);
         User frontendLead = user("teamleadfrontend@mail.com", "teamleadfrontend123",
             "Riya", "Joshi", UserRole.TEAM_LEAD, devDept, frontendTeam,
@@ -236,7 +236,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("║   uiuxdesign@mail.com / uiuxdesign123                    ║");
         System.out.println("╠═══════════════════════════════════════════════════════════╣");
         System.out.println("║ TEAM LEADS:                                               ║");
-        System.out.println("║   teamleadbackend@mail.com / teamleadbackend123           ║");
+        System.out.println("║   sahil@mail.com / Sahil@123                              ║");
         System.out.println("║   teamleadfrontend@mail.com / teamleadfrontend123         ║");
         System.out.println("║   teamleadqa@mail.com / teamleadqa123                     ║");
         System.out.println("╠═══════════════════════════════════════════════════════════╣");
